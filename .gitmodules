@@ -1,0 +1,8 @@
+[submodule "accelerate"]
+	path = accelerate
+	url = https://github.com/ivogabe/accelerate.git
+	branch = new-pipeline
+[submodule "accelerate-llvm"]
+	path = accelerate-llvm
+	url = https://github.com/ivogabe/accelerate-llvm.git
+	branch = new-pipeline

@@ -1,0 +1,5 @@
+packages:
+    test
+    accelerate
+    accelerate-llvm/accelerate-llvm
+    accelerate-llvm/accelerate-llvm-native
