@@ -14,7 +14,7 @@
   ];
 
   env = {
-    ACCELERATE_LLVM_CLANG_PATH = "${pkgs.clang}/bin/clang";
+    ACCELERATE_LLVM_CLANG_PATH = "${pkgs.llvmPackages.clang-unwrapped}/bin/clang";
 
     # NIXOS specific fix
     NIX_ENFORCE_NO_NATIVE = "0";
