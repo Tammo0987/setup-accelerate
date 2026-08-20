@@ -1,0 +1,16 @@
+cradle:
+  cabal:
+    - path: "./accelerate/src"
+      component: "lib:accelerate"
+
+    - path: "./accelerate-llvm/accelerate-llvm/src"
+      component: "lib:accelerate-llvm"
+
+    - path: "./accelerate-llvm/accelerate-llvm-native/src"
+      component: "lib:accelerate-llvm-native"
+
+    - path: "./test/src"
+      component: "accelerate-test:exe:accelerate-test"
+
+    - path: "./test/test"
+      component: "accelerate-test:test:ilp"
