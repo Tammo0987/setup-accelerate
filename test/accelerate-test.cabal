@@ -1,24 +1,36 @@
-cabal-version:      2.4
-name:               accelerate-test
-version:            0.1.0.0
-build-type:         Simple
+cabal-version: 2.4
+name: accelerate-test
+version: 0.1.0.0
+build-type: Simple
 
 executable accelerate-test
-    main-is:          Main.hs
-    hs-source-dirs:   src
-    build-depends:    base
-                    , accelerate
-                    , accelerate-llvm-native
-    default-language: Haskell2010
-    ghc-options:      -threaded -O2
+  main-is: Main.hs
+  hs-source-dirs: src
+  build-depends:
+    accelerate,
+    accelerate-llvm-native,
+    base,
+
+  default-language: Haskell2010
+  ghc-options:
+    -threaded
+    -O2
 
 test-suite ilp
-    type:             exitcode-stdio-1.0
-    main-is:          Main.hs
-    hs-source-dirs:   test
-    other-modules:    ILP.ConstraintLanguage
-    build-depends:    base
-                    , accelerate
-                    , containers
-    default-language: Haskell2010
-    ghc-options:      -threaded
+  type: exitcode-stdio-1.0
+  main-is: Main.hs
+  hs-source-dirs: test
+  other-modules:
+    ILP.Compare
+    ILP.ConstraintLanguage
+    ILP.Programs
+
+  build-depends:
+    accelerate,
+    accelerate-llvm-native,
+    base,
+    containers,
+    mtl ^>=2.3.1,
+
+  default-language: Haskell2010
+  ghc-options: -threaded
