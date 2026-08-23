@@ -22,7 +22,6 @@ test-suite ilp
   hs-source-dirs: test
   other-modules:
     ILP.Compare
-    ILP.ConstraintLanguage
     ILP.Programs
 
   build-depends:
@@ -30,7 +29,6 @@ test-suite ilp
     accelerate-llvm-native,
     base,
     containers,
-    mtl ^>=2.3.1,
 
   default-language: Haskell2010
   ghc-options: -threaded
