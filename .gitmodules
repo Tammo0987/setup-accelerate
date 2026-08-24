@@ -1,7 +1,7 @@
 [submodule "accelerate"]
 	path = accelerate
-	url = https://github.com/ivogabe/accelerate.git
-	branch = new-pipeline
+	url = https://github.com/Tammo0987/accelerate.git
+	branch = ilp-constraint-language
 [submodule "accelerate-llvm"]
 	path = accelerate-llvm
 	url = https://github.com/ivogabe/accelerate-llvm.git
