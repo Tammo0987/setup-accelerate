@@ -16,7 +16,7 @@ main = do
     report obj p@(TestProgram name _) = do
       (old, new) <- compareCost obj p
       let ok = old == new
-      putStrLn $ show obj ++ " / " ++ name ++ ": legacy=" ++ shown old ++ ", new=" ++ shown new ++ (if ok then " ok" else " mismatch")
+      putStrLn $ show obj ++ " / " ++ name ++ ": default=" ++ shown old ++ ", presolved=" ++ shown new ++ (if ok then " ok" else " mismatch")
       pure ok
 
     shown Nothing = "no solution"
