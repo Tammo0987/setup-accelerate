@@ -9,6 +9,7 @@
     cbc
     libffi
     pkg-config
+    cudaPackages.cudatoolkit
     haskell.packages.ghc912.cabal-gild
     haskell.packages.ghc912.hlint
     haskell.packages.ghc912.ormolu
@@ -16,6 +17,13 @@
 
   env = {
     ACCELERATE_LLVM_CLANG_PATH = "${pkgs.llvmPackages.clang-unwrapped}/bin/clang";
+
+    # Where the `cuda` package's configure step looks for nvcc and the headers.
+    CUDA_PATH = "${pkgs.cudaPackages.cudatoolkit}";
+
+    # libcuda ships with the NVIDIA driver, not the toolkit. The toolkit's stub
+    # satisfies the link check so accelerate-llvm-ptx compiles without a GPU.
+    LIBRARY_PATH = "${pkgs.cudaPackages.cudatoolkit}/lib/stubs";
 
     # NIXOS specific fix
     NIX_ENFORCE_NO_NATIVE = "0";

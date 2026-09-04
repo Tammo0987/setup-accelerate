@@ -3,3 +3,4 @@ packages:
     accelerate
     accelerate-llvm/accelerate-llvm
     accelerate-llvm/accelerate-llvm-native
+    accelerate-llvm/accelerate-llvm-ptx
