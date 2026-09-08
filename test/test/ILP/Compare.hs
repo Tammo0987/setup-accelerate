@@ -4,12 +4,12 @@
 module ILP.Compare where
 
 import Data.Array.Accelerate.LLVM.Native.Operation (NativeOp)
-import Data.Array.Accelerate.Trafo (toFusionILP)
 import Data.Array.Accelerate.Trafo.Config (defaultOptions)
 import Data.Array.Accelerate.Trafo.Partitioning.ILP.MIP (MIP (..), cbc)
 import Data.Array.Accelerate.Trafo.Partitioning.ILP.Solve (Objective, makeILP)
-import Data.Array.Accelerate.Trafo.Partitioning.ILP.Solver (ILP (..), evalExpr, solve)
+import Data.Array.Accelerate.Trafo.Partitioning.ILP.Solver (ILP (..), solve)
 import ILP.Programs (TestProgram (..))
+import ILP.Trafo (evalExpr, toFusionILP)
 
 compareCost :: Objective -> TestProgram -> IO (Maybe Int, Maybe Int)
 compareCost obj (TestProgram _ f) = do
