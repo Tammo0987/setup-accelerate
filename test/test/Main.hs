@@ -1,7 +1,7 @@
 module Main where
 
 import Control.Monad (unless)
-import Data.Array.Accelerate.Trafo.Partitioning.ILP.Solve (Objective (..))
+import Data.Array.Accelerate.Trafo.Partitioning.ILP.Encoding (Objective (..))
 import ILP.Compare (compareCost)
 import ILP.Programs (TestProgram (..), programs)
 import System.Exit (exitFailure)

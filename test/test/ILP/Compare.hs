@@ -6,7 +6,7 @@ module ILP.Compare where
 import Data.Array.Accelerate.LLVM.Native.Operation (NativeOp)
 import Data.Array.Accelerate.Trafo.Config (defaultOptions)
 import Data.Array.Accelerate.Trafo.Partitioning.ILP.MIP (MIP (..), cbc)
-import Data.Array.Accelerate.Trafo.Partitioning.ILP.Solve (Objective, makeILP)
+import Data.Array.Accelerate.Trafo.Partitioning.ILP.Encoding (Objective, makeILP)
 import Data.Array.Accelerate.Trafo.Partitioning.ILP.Solver (ILP (..), solve)
 import ILP.Programs (TestProgram (..))
 import ILP.Trafo (evalExpr, toFusionILP)
