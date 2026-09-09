@@ -16,7 +16,7 @@ import qualified Data.Array.Accelerate.Trafo.Operation.LiveVars as Operation
 import qualified Data.Array.Accelerate.Trafo.Operation.Simplify as Operation
 import Data.Array.Accelerate.Trafo.Operation.Bounds (OperationBounds, boundsOptimizeAfun)
 import qualified Data.Array.Accelerate.Trafo.Partitioning.ILP.Graph as Graph
-import Data.Array.Accelerate.Trafo.Partitioning.ILP.Graph (Var)
+import Data.Array.Accelerate.Trafo.Partitioning.ILP.Var (Var)
 import Data.Array.Accelerate.Trafo.Partitioning.ILP.LinearConstraint
   (Constants, Expression (..), Number (..))
 import Data.Array.Accelerate.Trafo.Partitioning.ILP.Solver (Solution)
