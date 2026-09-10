@@ -24,6 +24,7 @@ test-suite ilp
     ILP.Compare
     ILP.Programs
     ILP.Trafo
+    ILP.Validate
 
   build-depends:
     accelerate,
