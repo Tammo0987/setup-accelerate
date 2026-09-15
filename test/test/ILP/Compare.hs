@@ -1,24 +1,44 @@
-{-# LANGUAGE BlockArguments #-}
 {-# LANGUAGE TypeApplications #-}
 
 module ILP.Compare where
 
 import Data.Array.Accelerate.LLVM.Native.Operation (NativeOp)
 import Data.Array.Accelerate.Trafo.Config (defaultOptions)
+import Data.Array.Accelerate.Trafo.Partitioning.ILP.Encoding (Objective, makeILPWithPresolve)
 import Data.Array.Accelerate.Trafo.Partitioning.ILP.MIP (MIP (..), cbc)
-import Data.Array.Accelerate.Trafo.Partitioning.ILP.Encoding (Objective, makeILP)
-import Data.Array.Accelerate.Trafo.Partitioning.ILP.Solver (ILP (..), solve)
+import Data.Array.Accelerate.Trafo.Partitioning.ILP.Solver (solve)
 import ILP.Programs (TestProgram (..))
-import ILP.Trafo (evalExpr, toFusionILP)
+import ILP.Trafo (toFusionILP)
+import ILP.Validate (Report (..), renderReport, reportOk, validate)
 
-compareCost :: Objective -> TestProgram -> IO (Maybe Int, Maybe Int)
-compareCost obj (TestProgram _ f) = do
+data Comparison = Comparison
+  { original :: Report,
+    presolved :: Report,
+    presolvedOnOriginal :: Report
+  }
+
+compareProgram :: Objective -> TestProgram -> IO (Maybe Comparison)
+compareProgram obj (TestProgram _ f) = do
   let fusedILP = toFusionILP @NativeOp defaultOptions f
-      defaultILP@(ILP _ objFun _ _ consts) = makeILP obj fusedILP
-      -- TODO: add presolver here later.
-      presolvedILP = makeILP obj fusedILP
+      defaultILP = makeILPWithPresolve False obj fusedILP
+      presolvedILP = makeILPWithPresolve True obj fusedILP
   defaultSolution <- solve (MIP cbc) defaultILP
   presolvedSolution <- solve (MIP cbc) presolvedILP
-  let defaultCost = fmap (\sol -> evalExpr consts sol objFun) defaultSolution
-      presolvedCost = fmap (\sol -> evalExpr consts sol objFun) presolvedSolution
-  pure (defaultCost, presolvedCost)
+
+  pure $ do
+    o <- defaultSolution
+    p <- presolvedSolution
+    Just $ Comparison (validate defaultILP o) (validate presolvedILP p) (validate defaultILP p)
+
+comparisonOk :: Comparison -> Bool
+comparisonOk c =
+  reportOk (original c) && reportOk (presolvedOnOriginal c) && reportCost (original c) == reportCost (presolvedOnOriginal c)
+
+renderComparison :: Comparison -> String
+renderComparison c =
+  "original: "
+    ++ renderReport (original c)
+    ++ " | presolved: rows="
+    ++ show (reportRows (presolved c))
+    ++ " cost="
+    ++ show (reportCost (presolvedOnOriginal c))

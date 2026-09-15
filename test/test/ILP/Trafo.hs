@@ -19,7 +19,7 @@ import qualified Data.Array.Accelerate.Trafo.Partitioning.ILP.Graph as Graph
 import Data.Array.Accelerate.Trafo.Partitioning.ILP.LinearConstraint
   (Constants, Expression (..), Number (..))
 import Data.Array.Accelerate.Trafo.Partitioning.ILP.Solver (Solution)
-import Data.Array.Accelerate.Trafo.Partitioning.ILP.Graph (Var)
+import Data.Array.Accelerate.Trafo.Partitioning.ILP.Var (Var)
 
 type TrafoFront op =
   ( LowerAcc op

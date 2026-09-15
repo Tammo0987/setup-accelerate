@@ -2,7 +2,7 @@
 
 module ILP.Validate where
 
-import Data.Array.Accelerate.Trafo.Partitioning.ILP.Graph (Var (..))
+import Data.Array.Accelerate.Trafo.Partitioning.ILP.Var (Var (..))
 import Data.Array.Accelerate.Trafo.Partitioning.ILP.LinearConstraint (Bounds (..), Constants, LinearConstraint (..))
 import Data.Array.Accelerate.Trafo.Partitioning.ILP.Solver (ILP (..), Solution, allVars)
 import Data.List (intercalate)
