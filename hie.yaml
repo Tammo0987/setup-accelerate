@@ -14,3 +14,6 @@ cradle:
 
     - path: "./test/test"
       component: "accelerate-test:test:ilp"
+
+    - path: "./test/bench"
+      component: "accelerate-test:exe:ilp-bench"

@@ -34,3 +34,26 @@ test-suite ilp
 
   default-language: Haskell2010
   ghc-options: -threaded
+
+executable ilp-bench
+  main-is: Bench.hs
+  hs-source-dirs:
+    bench
+    test
+
+  other-modules:
+    ILP.Programs
+    ILP.Trafo
+    ILP.Validate
+
+  build-depends:
+    accelerate,
+    accelerate-llvm-native,
+    base,
+    containers,
+    criterion-measurement,
+
+  default-language: Haskell2010
+  ghc-options:
+    -threaded
+    -O2
