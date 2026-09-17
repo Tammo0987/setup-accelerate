@@ -16,8 +16,8 @@ import ILP.Trafo (toFusionILP)
 import ILP.Validate (rows)
 import Text.Printf (printf)
 
-objective :: Objective
-objective = MemoryUsage'
+objectives :: [Objective]
+objectives = [MemoryUsage', MemoryUsage, ArrayReads, FusedEdges]
 
 runs :: Int
 runs = 5
@@ -25,12 +25,13 @@ runs = 5
 benchPrograms :: [TestProgram]
 benchPrograms =
   [ TestProgram "sort-1" $ radixsort 1 bytes,
+    TestProgram "sort-2" $ radixsort 2 bytes,
     TestProgram "sort-4" $ radixsort 4 bytes,
     TestProgram "sort-8" $ radixsort 8 bytes,
-    TestProgram "twoSorts" $ twoSorts 4,
-    TestProgram "twoSorts" $ twoSorts 8
+    TestProgram "twoSorts-1" $ twoSorts 1,
+    TestProgram "twoSorts-2" $ twoSorts 2,
+    TestProgram "twoSorts-4" $ twoSorts 4
   ]
-
 
 main :: IO ()
 main = do
@@ -39,15 +40,15 @@ main = do
   mapM_ benchProgram benchPrograms
 
 benchProgram :: TestProgram -> IO ()
-benchProgram (TestProgram name f) = mapM_ run [False, True]
+benchProgram (TestProgram name f) = sequence_ [run presolve objective | objective <- objectives, presolve <- [False, True]]
   where
     fusedILP = toFusionILP @NativeOp defaultOptions f
 
-    run presolve = do
-        let ilp@(ILP _ _ constraint _ _) = makeILPWithPresolve presolve objective fusedILP
-        _ <- solve (MIP cbc) ilp -- warm up
-        times <- mapM (const $ time $ solve (MIP cbc) ilp) [1 .. runs]
-        printf "%-12s %-9s %-6d %-6d %-16.3f\n" name (show presolve) (length $ rows constraint) (S.size $ allVars ilp) (median times)
+    run presolve objective = do
+      let ilp@(ILP _ _ constraint _ _) = makeILPWithPresolve presolve objective fusedILP
+      _ <- solve (MIP cbc) ilp -- warm up
+      times <- mapM (const $ time $ solve (MIP cbc) ilp) [1 .. runs]
+      printf "%-12s %-9s %-6d %-6d %-16.3f\n" name (show presolve) (length $ rows constraint) (S.size $ allVars ilp) (median times)
 
     time act = measTime . fst <$> measure (whnfIO act) 1
 
