@@ -17,3 +17,17 @@
 ## For the solver
 - idea: use order constraints -> encode them into an fgl graph. 
 - use reasoning e.g., if we find a cycle, it must be fused.
+
+21.09.
+
+- Main goal is to have the graph based algorithms as part of the presolver:
+- First algortihm: Reachability for ClusterBeforeUnlessFused. If we know their pis cant be fused, we can remove the constraint (or simplify) (graph only for pi order, pi are nodes and edges are order constraints)
+- Splitting the problem into multiple ones as in the prototype should not be part of the presolver yet.
+- Check for each constraint which implication they have for binary and order variables. (Default modules)
+- Do some instrumentation parts of the benchmark in a limited amount of time.
+- If time left, try replacing variables or look into the custom solver.
+
+- For the custom solver, do presolving, branch on the ClusterBeforeUnlessFused constraints, and solve both. Take the one with the better cost according to the cost function.
+
+- Find a paper for the colloqium talk.
+- Make a separate PR for the accelerate build fix.
