@@ -25,6 +25,17 @@ objectives = [MemoryUsage']
 runs :: Int
 runs = 2
 
+data PresolveMode
+  = NoPresolve
+  | AssignmentConstraints
+  | ReplaceVariables
+  deriving (Eq)
+
+modeName :: PresolveMode -> String
+modeName NoPresolve = "none"
+modeName AssignmentConstraints = "assign"
+modeName ReplaceVariables = "replace"
+
 benchPrograms :: [TestProgram]
 benchPrograms =
   [ TestProgram "sort-1" $ radixsort 1 bytes,
@@ -40,9 +51,9 @@ main :: IO ()
 main = do
   initializeTime
   printf
-    "%-12s %-9s %-6s %-6s %-20s %-16s\n"
+    "%-12s %-12s %-6s %-6s %-20s %-16s\n"
     "program"
-    "presolve"
+    "mode"
     "rows"
     "cols"
     "median presolve [s]"
@@ -52,15 +63,16 @@ main = do
 benchProgram :: TestProgram -> IO ()
 benchProgram (TestProgram name f) =
   sequence_
-    [ run usePresolve objective
+    [ run mode objective
     | objective <- objectives,
-      usePresolve <- [False, True]
+      mode <- [NoPresolve, AssignmentConstraints, ReplaceVariables]
     ]
   where
     fusedILP = toFusionILP @NativeOp defaultOptions f
 
-    run usePresolve objective = do
-      let ILPStages rawConstraints lower = makeILPStages objective fusedILP
+    run mode objective = do
+      let ILPStages rawConstraints lowerWithAssignments lowerWithReplacement = makeILPStages objective fusedILP
+          usePresolve = mode /= NoPresolve
 
       -- Generate the initial constraint-list spine before timing presolve.
       _ <- evaluate $ length rawConstraints
@@ -78,6 +90,10 @@ benchProgram (TestProgram name f) =
             | otherwise =
                 Problem rawConstraints emptySubstitution
 
+          lower = case mode of
+            ReplaceVariables -> lowerWithReplacement
+            _ -> lowerWithAssignments
+
           ilp@(ILP _ _ constraint _ _) = lower problem
 
       -- Warm up the solver and force the lowered ILP.
@@ -86,12 +102,12 @@ benchProgram (TestProgram name f) =
       solveTimes <- mapM (const $ timeIO $ solve (MIP cbc) ilp) [1 .. runs]
 
       printf
-        "%-12s %-9s %-6d %-6d %-20s %-16.4f\n"
+        "%-12s %-12s %-6d %-6d %-20s %-16.4f\n"
         name
-        (show usePresolve)
+        (modeName mode)
         (length $ rows constraint)
         (S.size $ allVars ilp)
-        (case presolveTimes of
+        ( case presolveTimes of
             [] -> "-"
             times -> printf "%.4f" (median times)
         )
