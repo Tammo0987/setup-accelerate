@@ -2,13 +2,16 @@
 
 module Main where
 
+import Control.Exception (evaluate)
 import Criterion.Measurement (initializeTime, measure)
-import Criterion.Measurement.Types (Measured (measTime), whnfIO)
+import Criterion.Measurement.Types (Measured (measTime), whnf, whnfIO)
 import Data.Array.Accelerate.LLVM.Native.Operation (NativeOp)
 import Data.Array.Accelerate.Trafo.Config (defaultOptions)
-import Data.Array.Accelerate.Trafo.Partitioning.ILP.Encoding (Objective (..), makeILPWithPresolve)
+import Data.Array.Accelerate.Trafo.Partitioning.ILP.Encoding (ILPStages (..), Objective (..), makeILPStages)
 import Data.Array.Accelerate.Trafo.Partitioning.ILP.MIP (MIP (..), cbc)
+import Data.Array.Accelerate.Trafo.Partitioning.ILP.Presolve (Problem (..), emptySubstitution, presolve)
 import Data.Array.Accelerate.Trafo.Partitioning.ILP.Solver (ILP (..), allVars, solve)
+import Data.Either (fromRight)
 import Data.List (sort)
 import qualified Data.Set as S
 import ILP.Programs (TestProgram (..), bytes, radixsort, twoSorts)
@@ -17,10 +20,10 @@ import ILP.Validate (rows)
 import Text.Printf (printf)
 
 objectives :: [Objective]
-objectives = [MemoryUsage', MemoryUsage, ArrayReads, FusedEdges]
+objectives = [MemoryUsage']
 
 runs :: Int
-runs = 5
+runs = 2
 
 benchPrograms :: [TestProgram]
 benchPrograms =
@@ -36,21 +39,69 @@ benchPrograms =
 main :: IO ()
 main = do
   initializeTime
-  printf "%-12s %-9s %-6s %-6s %-16s\n" "program" "presolve" "rows" "cols" "median solve [s]"
+  printf
+    "%-12s %-9s %-6s %-6s %-20s %-16s\n"
+    "program"
+    "presolve"
+    "rows"
+    "cols"
+    "median presolve [s]"
+    "median solve [s]"
   mapM_ benchProgram benchPrograms
 
 benchProgram :: TestProgram -> IO ()
-benchProgram (TestProgram name f) = sequence_ [run presolve objective | objective <- objectives, presolve <- [False, True]]
+benchProgram (TestProgram name f) =
+  sequence_
+    [ run usePresolve objective
+    | objective <- objectives,
+      usePresolve <- [False, True]
+    ]
   where
     fusedILP = toFusionILP @NativeOp defaultOptions f
 
-    run presolve objective = do
-      let ilp@(ILP _ _ constraint _ _) = makeILPWithPresolve presolve objective fusedILP
-      _ <- solve (MIP cbc) ilp -- warm up
-      times <- mapM (const $ time $ solve (MIP cbc) ilp) [1 .. runs]
-      printf "%-12s %-9s %-6d %-6d %-16.3f\n" name (show presolve) (length $ rows constraint) (S.size $ allVars ilp) (median times)
+    run usePresolve objective = do
+      let ILPStages rawConstraints lower = makeILPStages objective fusedILP
 
-    time act = measTime . fst <$> measure (whnfIO act) 1
+      -- Generate the initial constraint-list spine before timing presolve.
+      _ <- evaluate $ length rawConstraints
+
+      presolveTimes <-
+        if usePresolve
+          then mapM (const $ timePure presolve rawConstraints) [1 .. runs]
+          else pure []
+
+      let problem
+            | usePresolve =
+                fromRight
+                  (error "presolve: ILP is infeasible")
+                  (presolve rawConstraints)
+            | otherwise =
+                Problem rawConstraints emptySubstitution
+
+          ilp@(ILP _ _ constraint _ _) = lower problem
+
+      -- Warm up the solver and force the lowered ILP.
+      _ <- solve (MIP cbc) ilp
+
+      solveTimes <- mapM (const $ timeIO $ solve (MIP cbc) ilp) [1 .. runs]
+
+      printf
+        "%-12s %-9s %-6d %-6d %-20s %-16.6f\n"
+        name
+        (show usePresolve)
+        (length $ rows constraint)
+        (S.size $ allVars ilp)
+        ( case presolveTimes of
+            [] -> "-"
+            times -> printf "%.6f" (median times)
+        )
+        (median solveTimes)
+
+    timePure :: (a -> b) -> a -> IO Double
+    timePure function input = measTime . fst <$> measure (whnf function input) 1
+
+    timeIO :: IO a -> IO Double
+    timeIO action = measTime . fst <$> measure (whnfIO action) 1
 
 median :: [Double] -> Double
 median xs = sort xs !! (length xs `div` 2)
