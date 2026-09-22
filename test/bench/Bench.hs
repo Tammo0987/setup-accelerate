@@ -86,14 +86,14 @@ benchProgram (TestProgram name f) =
       solveTimes <- mapM (const $ timeIO $ solve (MIP cbc) ilp) [1 .. runs]
 
       printf
-        "%-12s %-9s %-6d %-6d %-20s %-16.6f\n"
+        "%-12s %-9s %-6d %-6d %-20s %-16.4f\n"
         name
         (show usePresolve)
         (length $ rows constraint)
         (S.size $ allVars ilp)
-        ( case presolveTimes of
+        (case presolveTimes of
             [] -> "-"
-            times -> printf "%.6f" (median times)
+            times -> printf "%.4f" (median times)
         )
         (median solveTimes)
 
