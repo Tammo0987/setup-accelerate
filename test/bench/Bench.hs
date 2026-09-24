@@ -17,7 +17,7 @@ import Data.List (sort)
 import qualified Data.Map as M
 import qualified Data.Set as S
 import ILP.Programs (TestProgram (..), bytes, radixsort, twoSorts)
-import ILP.Trafo (toFusionILP)
+import ILP.Trafo (evalExpr, toFusionILP)
 import ILP.Validate (rows)
 import System.Environment (getArgs)
 import System.Exit (exitFailure)
@@ -96,13 +96,14 @@ runOriginalBenchmark :: IO ()
 runOriginalBenchmark = do
   putStrLn ""
   printf
-    "%-12s %-12s %-6s %-6s %-20s %-16s\n"
+    "%-12s %-12s %-6s %-6s %-20s %-16s %-12s\n"
     "program"
     "mode"
     "rows"
     "cols"
     "median presolve [s]"
     "median solve [s]"
+    "cost"
   mapM_ benchProgram benchPrograms
 
 runCustomSolverBenchmark :: IO ()
@@ -151,15 +152,16 @@ benchProgram (TestProgram name f) =
             ReplaceVariables -> lowerWithReplacement
             _ -> lowerWithAssignments
 
-          ilp@(ILP _ _ constraint _ _) = lower problem
+          ilp@(ILP _ objective' constraint _ constants) = lower problem
 
       -- Warm up the solver and force the lowered ILP.
       _ <- solve (MIP cbc) ilp
 
       solveTimes <- mapM (const $ timeIO $ solve (MIP cbc) ilp) [1 .. runs]
+      result <- solve (MIP cbc) ilp
 
       printf
-        "%-12s %-12s %-6d %-6d %-20s %-16.4f\n"
+        "%-12s %-12s %-6d %-6d %-20s %-16.4f %-12s\n"
         name
         (modeName mode)
         (length $ rows constraint)
@@ -169,6 +171,7 @@ benchProgram (TestProgram name f) =
             times -> printf "%.4f" (median times)
         )
         (median solveTimes)
+        (maybe "infeasible" (show . (\solution -> evalExpr constants solution objective')) result)
 
 benchCustomSolver :: TestProgram -> IO ()
 benchCustomSolver (TestProgram name f) = do
