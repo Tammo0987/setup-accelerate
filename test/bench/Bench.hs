@@ -110,11 +110,12 @@ runCustomSolverBenchmark :: IO ()
 runCustomSolverBenchmark = do
   putStrLn ""
   printf
-    "%-12s %-20s %-20s %-10s %-10s\n"
+    "%-12s %-20s %-20s %-12s %-12s %-12s\n"
     "program"
     "median presolve [s]"
     "median custom [s]"
     "cost"
+    "CBC cost"
     "assignments"
   mapM_ benchCustomSolver customSolverPrograms
 
@@ -191,28 +192,33 @@ benchCustomSolver (TestProgram name f) = do
         fromRight
           (error "presolve: ILP is infeasible")
           (presolve rawConstraints)
+      ILP _ objective _ _ constants = lowerWithReplacement presolvedProblem
 
   solverTimes <-
     mapM
       (const $ timePure (solverChecksum . solver) presolvedProblem)
-      [1 .. runs]
+      [1 .. customRuns]
+
+  cbcResult <- solve (MIP cbc) (lowerWithReplacement presolvedProblem)
 
   case solver presolvedProblem of
     Left completionError ->
       printf
-        "%-12s %-20.4f %-20.4f %-10s %-10s\n"
+        "%-12s %-20.4f %-20.4f %-12s %-12s %-12s\n"
         name
         (median presolveTimes)
         (median solverTimes)
         "failed"
+        "-"
         (show completionError)
     Right feasibleSolution ->
       printf
-        "%-12s %-20.4f %-20.4f %-10d %-10d\n"
+        "%-12s %-20.4f %-20.4f %-12d %-12s %-12d\n"
         name
         (median presolveTimes)
         (median solverTimes)
         (cost feasibleSolution)
+        (maybe "infeasible" (show . (\solution -> evalExpr constants solution objective)) cbcResult)
         (M.size $ solution feasibleSolution)
 
 solverChecksum :: Either completionError FeasibleSolution -> Int
