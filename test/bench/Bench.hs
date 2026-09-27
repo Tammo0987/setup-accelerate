@@ -7,7 +7,7 @@ import Criterion.Measurement (initializeTime, measure)
 import Criterion.Measurement.Types (Measured (measTime), whnf, whnfIO)
 import Data.Array.Accelerate.LLVM.Native.Operation (NativeOp)
 import Data.Array.Accelerate.Trafo.Config (defaultOptions)
-import Data.Array.Accelerate.Trafo.Partitioning.ILP.CustomSolver (FeasibleSolution (..), solveFeasible)
+import Data.Array.Accelerate.Trafo.Partitioning.ILP.CustomSolver (FeasibleSolution (..), solveOptimal)
 import Data.Array.Accelerate.Trafo.Partitioning.ILP.Encoding (ILPStages (..), Objective (..), makeILPStages)
 import Data.Array.Accelerate.Trafo.Partitioning.ILP.MIP (MIP (..), cbc)
 import Data.Array.Accelerate.Trafo.Partitioning.ILP.Presolve (Problem (..), emptySubstitution, presolve)
@@ -31,7 +31,7 @@ runs :: Int
 runs = 2
 
 customRuns :: Int
-customRuns = 2
+customRuns = 1
 
 data PresolveMode
   = NoPresolve
@@ -114,7 +114,7 @@ runCustomSolverBenchmark = do
     "program"
     "median presolve [s]"
     "median custom [s]"
-    "cost"
+    "optimal cost"
     "CBC cost"
     "assignments"
   mapM_ benchCustomSolver customSolverPrograms
@@ -180,7 +180,7 @@ benchCustomSolver (TestProgram name f) = do
       ILPStages rawConstraints lowerWithAssignments lowerWithReplacement = makeILPStages MemoryUsage' fusedILP
       originalProblem = Problem rawConstraints emptySubstitution
       originalVariables = allVars $ lowerWithAssignments originalProblem
-      solver = solveFeasible lowerWithReplacement originalVariables
+      solver = solveOptimal lowerWithReplacement originalVariables
 
   -- Construct the raw constraint-list spine before timing presolve.
   _ <- evaluate $ length rawConstraints
@@ -211,15 +211,15 @@ benchCustomSolver (TestProgram name f) = do
         "failed"
         "-"
         (show completionError)
-    Right feasibleSolution ->
+    Right optimalSolution ->
       printf
         "%-12s %-20.4f %-20.4f %-12d %-12s %-12d\n"
         name
         (median presolveTimes)
         (median solverTimes)
-        (cost feasibleSolution)
+        (cost optimalSolution)
         (maybe "infeasible" (show . (\solution -> evalExpr constants solution objective)) cbcResult)
-        (M.size $ solution feasibleSolution)
+        (M.size $ solution optimalSolution)
 
 solverChecksum :: Either completionError FeasibleSolution -> Int
 solverChecksum result =
