@@ -31,3 +31,18 @@
 
 - Find a paper for the colloqium talk.
 - Make a separate PR for the accelerate build fix.
+
+
+28.09.
+
+## Done
+
+- benchmark with phases -> presolve not a problem
+- benchmarking with assign and replace -> no trend visible in cbc times result
+- reachability for ClusterBeforeUnlessFused implemented
+- prototype for custom solver implemented, not yet finished with the result. some ai prototypes did show the optimal solution, but implementation of approaches not yet finalized (needs more thinking about the approach)
+
+## Not Done
+
+- additional presolve graph phases
+- build fix pr
