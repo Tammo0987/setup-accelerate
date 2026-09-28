@@ -46,3 +46,10 @@
 
 - additional presolve graph phases
 - build fix pr
+
+## TODO
+
+- double check fixpoint simplification (1. prio)
+- default approach, (also order vars), setting a default value if there is no downside to it. (look experiment, one for binary and one for order variables)
+- heuristic: how often does a var appears in constraint (2. prio)
+- multiple separate problems. (3. prio)
