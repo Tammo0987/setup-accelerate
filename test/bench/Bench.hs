@@ -16,7 +16,7 @@ import Data.Either (fromRight)
 import Data.List (sort)
 import qualified Data.Map as M
 import qualified Data.Set as S
-import ILP.Programs (TestProgram (..), bytes, radixsort, twoSorts)
+import ILP.Programs (TestProgram (..), bytes, chain, radixsort, simple, twoFolds, twoSorts)
 import ILP.Trafo (evalExpr, toFusionILP)
 import ILP.Validate (rows)
 import System.Environment (getArgs)
@@ -57,7 +57,10 @@ benchPrograms =
 
 customSolverPrograms :: [TestProgram]
 customSolverPrograms =
-  [ TestProgram "sort-1" $ radixsort 1 bytes
+  [ TestProgram "simple" simple,
+    TestProgram "chain" chain,
+    TestProgram "two-folds" twoFolds,
+    TestProgram "sort-1" $ radixsort 1 bytes
   ]
 
 data BenchmarkSuite
