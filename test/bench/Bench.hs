@@ -60,7 +60,9 @@ customSolverPrograms =
   [ TestProgram "simple" simple,
     TestProgram "chain" chain,
     TestProgram "two-folds" twoFolds,
-    TestProgram "sort-1" $ radixsort 1 bytes
+    TestProgram "sort-1" $ radixsort 1 bytes,
+    TestProgram "sort-2" $ radixsort 2 bytes,
+    TestProgram "two-sorts-1" $ twoSorts 1
   ]
 
 data BenchmarkSuite
