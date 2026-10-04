@@ -15,7 +15,8 @@
 - Double check cluster order constraints.
 
 ## For the solver
-- idea: use order constraints -> encode them into an fgl graph. 
+
+- idea: use order constraints -> encode them into an fgl graph.
 - use reasoning e.g., if we find a cycle, it must be fused.
 
 21.09.
@@ -31,7 +32,6 @@
 
 - Find a paper for the colloqium talk.
 - Make a separate PR for the accelerate build fix.
-
 
 28.09.
 
@@ -53,3 +53,22 @@
 - default approach, (also order vars), setting a default value if there is no downside to it. (look experiment, one for binary and one for order variables)
 - heuristic: how often does a var appears in constraint (2. prio)
 - multiple separate problems. (3. prio)
+
+05.10.
+
+## Done
+
+- Fixpoint simplification implemented.
+- Implemented a default value approach for binary, but only minor improvements (can't really tell a difference, so dropped in favor of reduced complexity)
+- Heuristic for variable frequency implemented, but not a global version. Only counts the set of in place variables and fusion, in this priority order. The other way around takes a lot longer (180s timeout vs 0.2665s). Reason not clear.
+- Splitting the problem did show, that at least for sort we have one dominating problem (could just split to problems of size 1 and the rest), so there is no split which would be better than the original problem on its own. Dropped in favor of reduced complexity, but did show minor improvements.
+
+- build fix pr
+- found correctness bug which only did occur for other objectives. Boundaries were not respected.
+
+- Found colloquium talk paper: egg
+- Question: When is the official end date of the project and when should I start writing the report? Also, what are the requirements for the report?
+
+## Not Done
+
+- Implement a default values approach for order variables.
