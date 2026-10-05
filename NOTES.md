@@ -72,3 +72,21 @@
 ## Not Done
 
 - Implement a default values approach for order variables.
+
+# TODO
+
+- fixpoint benchmark?
+- add binary default values from stash into the code.
+- Split problems, try to do the singleton problems, but also, adapt the branch strategy to try to disconnect them.
+
+- Add evaluation and future work for better grade.
+- try different passes in the solver for benchmarks and show which part contributes how?
+- skip the related work section, its a technical report not a paper.
+
+- test separate inplace updates enabled and disabled. (set all inplace updates to false)
+
+- colloquium talk, not next week and not the 9th november. schedule a date with alison. 14th december not possible as well.
+
+- another idea: find articulation points adn branch on them. but sometimes its unbalanced. eval the cost for both branches and use the cost to upate the cost function and drop contraints.
+- another idea: find "all" articulation points, sort them base on how even they distribute between the components and branch on the most even one.
+- Not only articulation points, but also look for minimal cuts.
