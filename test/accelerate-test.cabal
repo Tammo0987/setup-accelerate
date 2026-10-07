@@ -42,9 +42,13 @@ executable ilp-bench
     test
 
   other-modules:
+    Baseline
+    Custom
+    Framework
     ILP.Programs
     ILP.Trafo
     ILP.Validate
+    Lowering
 
   build-depends:
     accelerate,

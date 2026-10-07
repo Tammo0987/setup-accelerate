@@ -90,3 +90,10 @@
 - another idea: find articulation points adn branch on them. but sometimes its unbalanced. eval the cost for both branches and use the cost to upate the cost function and drop contraints.
 - another idea: find "all" articulation points, sort them base on how even they distribute between the components and branch on the most even one.
 - Not only articulation points, but also look for minimal cuts.
+
+13.09.
+
+## Done
+
+- Tested different fixpoint variations, no significant difference in the results. The current implementation will be kept.
+- Reworked benchmark into a more flexible framework for testing different variants.
