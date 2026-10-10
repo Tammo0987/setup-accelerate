@@ -98,3 +98,4 @@
 - Tested different fixpoint variations, no significant difference in the results. The current implementation will be kept.
 - Reworked benchmark into a more flexible framework for testing different variants.
 - Added optional binary defaults with custom benchmark for comparison.
+- Added optional direction var defaults with custom benchmark for comparison. For simple instances it creates overhead, but for more complext instances the combination is a small speedup.

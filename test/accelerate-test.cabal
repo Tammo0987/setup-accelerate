@@ -43,7 +43,7 @@ executable ilp-bench
 
   other-modules:
     Baseline
-    BinaryDefaults
+    Defaults
     Custom
     Framework
     ILP.Programs

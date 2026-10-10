@@ -1,11 +1,13 @@
 {-# LANGUAGE TypeApplications #-}
 
-module BinaryDefaults (suite) where
+module Defaults (suite) where
 
 import Control.Exception (evaluate)
 import Data.Array.Accelerate.LLVM.Native.Operation (NativeOp)
 import Data.Array.Accelerate.Trafo.Config (defaultOptions)
-import Data.Array.Accelerate.Trafo.Partitioning.ILP.CustomSolver (CompletionError, FeasibleSolution (..), solveOptimal, solveOptimalWithBinaryDefaults)
+import Data.Array.Accelerate.Trafo.Partitioning.ILP.BinaryDefaults (applyBinaryDefaults, defaultBinaryAssignments)
+import Data.Array.Accelerate.Trafo.Partitioning.ILP.CustomSolver (CompletionError, FeasibleSolution (..), solveOptimal, solveOptimalWithBinaryDefaults, solveOptimalUsing)
+import Data.Array.Accelerate.Trafo.Partitioning.ILP.DirectionDefaults (applyDirectionDefaults)
 import Data.Array.Accelerate.Trafo.Partitioning.ILP.Encoding (ILPStages (..), Objective (..), makeILPStages)
 import Data.Array.Accelerate.Trafo.Partitioning.ILP.MIP (MIP (..), cbc)
 import Data.Array.Accelerate.Trafo.Partitioning.ILP.Presolve (Problem (..), emptySubstitution, presolve)
@@ -16,14 +18,14 @@ import ILP.Programs (TestProgram (..), bytes, chain, radixsort, simple)
 import ILP.Trafo (evalExpr, toFusionILP)
 import Text.Printf (printf)
 
-data DefaultsMode = Disabled | Enabled
+data DefaultsMode = Disabled | Binary | Direction | Both
   deriving (Show)
 
 suite :: Suite
 suite =
   Suite
-    { suiteName = "binary-defaults",
-      suiteDescription = "Custom solver with and without binary defaults",
+    { suiteName = "defaults",
+      suiteDescription = "Optional binary and direction defaults in the custom solver",
       suiteRuns = 3,
       suitePrograms =
         [ TestProgram "simple" simple,
@@ -33,7 +35,9 @@ suite =
         ],
       suiteVariants =
         [ Variant "disabled" (benchProgram Disabled),
-          Variant "enabled" (benchProgram Enabled)
+          Variant "binary" (benchProgram Binary),
+          Variant "direction" (benchProgram Direction),
+          Variant "both" (benchProgram Both)
         ],
       suiteHeader =
         printf
@@ -53,9 +57,11 @@ benchProgram mode runs (TestProgram name f) = do
       variables = allVars $ lowerAssignments (Problem raw emptySubstitution)
       solver = case mode of
         Disabled -> solveOptimal lower variables
-        Enabled -> solveOptimalWithBinaryDefaults lower variables
+        Binary -> solveOptimalWithBinaryDefaults lower variables
+        Direction -> solveOptimalUsing (applyDirectionDefaults lower) lower variables
+        Both -> solveOptimalUsing (applyBothDefaults lower) lower variables
       simplify input = case presolve input of
-        Left _ -> error "binary defaults: infeasible presolve"
+        Left _ -> error "defaults: infeasible presolve"
         Right problem -> problem
 
   _ <- evaluate $ length raw
@@ -70,14 +76,14 @@ benchProgram mode runs (TestProgram name f) = do
   -- Check the original optimum, not the possibly restricted defaulted problem.
   reference <- solve (MIP cbc) ilp
   case (solver problem, reference) of
-    (Left failure, _) -> error $ "binary defaults: " ++ show failure
-    (_, Nothing) -> error "binary defaults: CBC found no solution"
+    (Left failure, _) -> error $ "defaults: " ++ show failure
+    (_, Nothing) -> error "defaults: CBC found no solution"
     (Right optimal, Just cbcSolution) -> do
       let referenceCost = evalExpr constants cbcSolution objective
       if cost optimal /= referenceCost
         then
           error $
-            "binary defaults: cost mismatch for "
+            "defaults: cost mismatch for "
               ++ name
               ++ " in mode "
               ++ show mode
@@ -95,6 +101,13 @@ benchProgram mode runs (TestProgram name f) = do
             (cost optimal)
             referenceCost
 
+applyBothDefaults :: (Problem -> ILP) -> Problem -> Maybe Problem
+applyBothDefaults lower problem = do
+  directed <- applyDirectionDefaults lower problem
+  if M.null (defaultBinaryAssignments lower directed)
+    then Just directed
+    else applyBinaryDefaults lower directed >>= applyBothDefaults lower
+
 solverChecksum :: Either CompletionError FeasibleSolution -> Int
-solverChecksum (Left failure) = error $ "binary defaults: " ++ show failure
+solverChecksum (Left failure) = error $ "defaults: " ++ show failure
 solverChecksum (Right feasible) = cost feasible + M.size (solution feasible)
