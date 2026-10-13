@@ -20,6 +20,17 @@ Building on the same representation, a custom solver was implemented that exploi
 
 \subsection{Scope and Contributions}
 
-% explain what this project delivers in terms of prs.
+The project contributes a domain-specific constraint language for the fusion problem, together with a translation into an ILP representation for the external solver.
+Building on this language, it introduces a presolver for simplifying fusion problems and a custom solver that exploits their structure.
+The evaluation compares different presolving and solving configurations on a set of benchmarks.
+An oracle is used to verify the correctness of the solutions.
+The corresponding pull requests and the repository containing the evaluation code are listed in the appendix.
+% TODO link pull requests in appendix.
 
-% explain the outline of the report and what is covered in each chapter.
+The report is structured as follows.
+\begin{itemize}
+    \item Section 2 describes the implementation of the domain-specific constraint language, the presolver, and the custom solver.
+    \item Section 3 describes the experimental evaluation with benchmarks and their results.
+    \item Section 4 discusses the results, their limitations and recommendations for future work.
+    \item Section 5 concludes the report.
+\end{itemize}
