@@ -2,27 +2,21 @@
 
 \subsection{Background and Problem}
 
-Accelerate is an embedded programming language for high-performance array computations.
-It is designed to allow parallel execution of array operations on GPUs and multicore CPUs.
-The compiler of the language translates high-level array operations into low-level code, that can be executed efficiently on the target hardware.
-Therefore it contains optimization passes, to generate efficient code.
-One of these optimizations is called fusion, which enables to combine multiple array operations into a single operation, in order to reduce the number of intermediate arrays and improve performance.
+Accelerate is an embedded language in Haskell for high-performance array computations on GPUs and CPUs.
+Its compiler translates high-level array operations into code for the target hardware, applying optimizations such as array fusion.
+Fusion combines multiple array operations into a combined operation, reducing the need for intermediate arrays and thereby reducing memory allocations and data movement.
 
-To combine multiple array operations into a single operation, the compiler needs to find the optimal fusion strategy.
-This problem is NP-hard and is solved using an Integer Linear Programming (ILP) solver.
-So for small instances of the problem, the ILP solver can find the optimal solution in a reasonable time, but for larger instances, the performance of the ILP solver becomes a bottleneck and the compilation time increases significantly.
+The compiler must decide which operations to fuse.
+In the current ILP-based approach, these decisions are expressed as an integer linear programming (ILP) problem, which is solved using an external ILP solver.
+The objective is to find the optimal fusion strategy that minimizes the cost, e.g. the number of memory allocations.
+Solving this problem is NP-hard.
+For some programs solving can take a long time and contributes significantly to the compilation time.
+% TODO: NP-hard, citation needed?
 
-The idea of this project is, that compared to a general ILP solver, we can use the domain knowledge of the problem to improve the performance of fusion.
-So the first goal is to find simplifications of the problem, before passing it to the ILP solver as a presolving step.
-The second goal, is to implement a custom ILP solver, which is tailored to the specific problem of fusion and can make use of the problem structure to improve performance.
-
-% Describe the problem, motivation, and objectives of the report.
-
-% explain accelerate
-
-% explain shortly fusion
-
-% explain use of ilp solver, explain the slow performance of the current use of external ilp solvers, and that the domain knowledge of the problem can be used to improve performance.
+This project investigates how properties of the fusion problem can be used to reduce solving time.
+The first step is to develop a domain-specific constraint language that makes these properties explicit.
+This language then enables the implementation of a presolver that simplifies the problem before passing it to the external solver.
+Building on the same representation, a custom solver was implemented that exploits the structure of the fusion problem as an alternative to the external solver.
 
 \subsection{Scope and Contributions}
 
