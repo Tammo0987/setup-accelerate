@@ -1,7 +1,31 @@
 \section{Introduction}
 
-Describe the problem, motivation, and objectives of the report.
+\subsection{Background and Problem}
 
-\subsection{Scope}
+Accelerate is an embedded programming language for high-performance array computations.
+It is designed to allow parallel execution of array operations on GPUs and multicore CPUs.
+The compiler of the language translates high-level array operations into low-level code, that can be executed efficiently on the target hardware.
+Therefore it contains optimization passes, to generate efficient code.
+One of these optimizations is called fusion, which enables to combine multiple array operations into a single operation, in order to reduce the number of intermediate arrays and improve performance.
 
-Outline what the report covers.
+To combine multiple array operations into a single operation, the compiler needs to find the optimal fusion strategy.
+This problem is NP-hard and is solved using an Integer Linear Programming (ILP) solver.
+So for small instances of the problem, the ILP solver can find the optimal solution in a reasonable time, but for larger instances, the performance of the ILP solver becomes a bottleneck and the compilation time increases significantly.
+
+The idea of this project is, that compared to a general ILP solver, we can use the domain knowledge of the problem to improve the performance of fusion.
+So the first goal is to find simplifications of the problem, before passing it to the ILP solver as a presolving step.
+The second goal, is to implement a custom ILP solver, which is tailored to the specific problem of fusion and can make use of the problem structure to improve performance.
+
+% Describe the problem, motivation, and objectives of the report.
+
+% explain accelerate
+
+% explain shortly fusion
+
+% explain use of ilp solver, explain the slow performance of the current use of external ilp solvers, and that the domain knowledge of the problem can be used to improve performance.
+
+\subsection{Scope and Contributions}
+
+% explain what this project delivers in terms of prs.
+
+% explain the outline of the report and what is covered in each chapter.
