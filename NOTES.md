@@ -99,3 +99,10 @@
 - Reworked benchmark into a more flexible framework for testing different variants.
 - Added optional binary defaults with custom benchmark for comparison.
 - Added optional direction var defaults with custom benchmark for comparison. For simple instances it creates overhead, but for more complext instances the combination is a small speedup.
+
+
+## TODO
+
+- check for default cases, either there is a bug or wrong implementation. Maybe look into a simple map problem.
+- change both optimizations recursively.
+- missing optimization, mention in report: eval the cost function and prune the branch where its always known to be worse, just based on the cost function. ILP Solver usually use LP Relaxation, this should be simpler.
