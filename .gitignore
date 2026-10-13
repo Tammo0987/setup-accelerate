@@ -9,3 +9,6 @@ devenv.local.yaml
 # cabal
 dist-newstyle
 cabal.project.local
+
+# LaTeX report
+/report/build/

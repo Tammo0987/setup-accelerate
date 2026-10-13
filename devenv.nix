@@ -5,6 +5,9 @@
 
 {
   packages = with pkgs; [
+    (texlive.combine {
+      inherit (texlive) scheme-small latexmk;
+    })
     gcc
     cbc
     libffi
@@ -30,6 +33,18 @@
   };
 
   scripts = {
+    build.exec = ''
+      set -e
+      cd "$DEVENV_ROOT/report"
+      exec latexmk -pdf -interaction=nonstopmode -halt-on-error -outdir=build "$@" main.tex
+    '';
+
+    watch.exec = ''
+      set -e
+      cd "$DEVENV_ROOT/report"
+      exec latexmk -pdf -pvc -view=none -interaction=nonstopmode -halt-on-error -outdir=build "$@" main.tex
+    '';
+
     build-ilp.exec = ''
       set -e
       cd "$DEVENV_ROOT"
