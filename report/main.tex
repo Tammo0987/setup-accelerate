@@ -7,7 +7,32 @@
 \usepackage{amsmath,amssymb}
 \usepackage{graphicx}
 \usepackage{listings}
+\usepackage{xcolor}
 \usepackage[hidelinks]{hyperref}
+
+\definecolor{codeInk}{HTML}{30343B}
+\definecolor{codeKeyword}{HTML}{395875}
+\definecolor{codeComment}{HTML}{607168}
+\definecolor{codeString}{HTML}{805A46}
+\definecolor{codeBackground}{HTML}{F7F8FA}
+\definecolor{codeRule}{HTML}{DCE1E6}
+
+\lstset{
+  language=Haskell,
+  basicstyle=\small\ttfamily\color{codeInk},
+  keywordstyle=\bfseries\color{codeKeyword},
+  commentstyle=\itshape\color{codeComment},
+  stringstyle=\color{codeString},
+  backgroundcolor=\color{codeBackground},
+  rulecolor=\color{codeRule},
+  frame=single, framerule=0.3pt, framesep=6pt,
+  framexleftmargin=16pt, xleftmargin=22.3pt, xrightmargin=6.3pt,
+  aboveskip=0.8\baselineskip, belowskip=0.8\baselineskip,
+  numbers=left, numberstyle=\scriptsize\ttfamily\color{codeComment}, numbersep=6pt,
+  basewidth=0.525em, keepspaces=true,
+  upquote=true, showstringspaces=false, tabsize=2,
+  breaklines=true, breakatwhitespace=true
+}
 
 \title{Technical Report}
 \author{Tammo Steffens}
