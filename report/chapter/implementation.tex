@@ -1,10 +1,13 @@
 \section{Implementation}
 
-\subsection{Constraint Language DSL}
+\subsection{Domain-Specific Constraint Language}
 
-The constraint language DSL was designed to represent the constraints of the original ILP formulation.
-Its constructors express domain-level relationships explicitly, rather than directly encoding them using integer variables and linear inequalities.
-The DSL is implemented as an algebraic data type called \texttt{Constraint}, with a constructor for each constraint kind and parameters identifying the computations and buffers involved.
+\paragraph{Constraint representation.}
+
+The domain-specific constraint language was designed to represent the constraints of the original ILP formulation as relationships between computations and buffers.
+Rather than encoding these relationships directly as integer variables and linear inequalities, the language gives each kind of constraint an explicit constructor.
+The language is implemented by the algebraic data type \texttt{Constraint}.
+The following code listing shows two examples of constraints that express ordering relationships between computations.
 
 \begin{lstlisting}[language=Haskell]
 data Constraint
@@ -20,7 +23,9 @@ The constraint \texttt{ClusterBefore} expresses the strict ordering $\pi_i < \pi
 For dependencies that permit fusion, the constraint \texttt{ClusterBeforeUnlessFused} requires $\pi_i = \pi_j$ if the computations are fused, and $\pi_i < \pi_j$ otherwise.
 This constraint makes the relationship between fusion decisions and cluster ordering explicit in the constraint language.
 
-To keep the support for the external ILP solver, the constraints are lowered into a linear representation.
+\paragraph{Lowering to ILP.}
+
+To keep support for the external ILP solver, the constraints are lowered into a linear representation.
 For each constraint, lowering produces a tuple containing linear constraints, variable bounds and a contribution to the objective.
 The lowering signature and its result type are shown in the code listing below:
 
@@ -32,14 +37,12 @@ type Lower = State String (LinearConstraint, Bounds, Expression)
 
 The \texttt{LowerEnv} parameter provides the total number of computations in the problem, which is used for some constraints to generate appropriate bounds and coefficients during lowering.
 The \texttt{Lower} type uses a state monad to supply fresh variable names to introduce auxiliary variables when needed.
-The state tracks name generation, while the returned tuple contains the generated linear constraints, variable bounds, and contributions to the objective function.
 Some constraints may not produce additional bounds or objective contributions.
 
 For example, the \texttt{HorizontalReadCost} constraint requires auxiliary variables to encode the cost associated with distinct clusters reading the same buffer.
 Fresh names ensure that variables introduced for separate constraints do not collide.
 
-For example, the \texttt{ClusterBefore} constraint requires computation $i$ to strictly precede computation $j$ in the cluster ordering.
-It is lowered to
+As a simple example of the translation, \texttt{ClusterBefore} is lowered to
 \[
    \pi_i < \pi_j.
 \]
@@ -51,7 +54,7 @@ The constraint is encoded as:
 \]
 where $M$ is a sufficiently large constant determined by the total number of computations in the problem.
 
-The function \texttt{lowerAll} applies lowering to all constraints and manages the state for fresh variable generation and combines the results.
+The function \texttt{lowerAll} lowers all constraints using a shared supply of fresh variable names and combines the results.
 
 \subsection{Presolver}
 
