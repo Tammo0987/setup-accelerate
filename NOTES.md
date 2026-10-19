@@ -106,3 +106,12 @@
 - check for default cases, either there is a bug or wrong implementation. Maybe look into a simple map problem.
 - change both optimizations recursively.
 - missing optimization, mention in report: eval the cost function and prune the branch where its always known to be worse, just based on the cost function. ILP Solver usually use LP Relaxation, this should be simpler.
+
+19.10.
+
+## Done
+
+- Add introduction to the report
+- Add implementation of the constraint dsl to the report
+- Add partial implementation draft of the presolver to the report
+- Tested very easy fixes for recursion of the external passes, but not dug into the problem yet (lost in the report)
