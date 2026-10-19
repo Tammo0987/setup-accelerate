@@ -110,6 +110,59 @@ This continues until the substitution no longer changes and the assignments in t
 
 \paragraph{Graph-based passes.}
 
-% TODO (not sure if here) explain assign vs replacement mode for substitution.
+The local simplification described above considers only one constraint at a time.
+However, some optimization techniques are only possible if we consider multiple constraints together.
+Therefore, the presolver also applies passes over the whole problem.
+Every pass takes a problem instance and either returns a simplified problem or reports infeasibility.
+The type of a pass is defined as follows:
+
+\begin{lstlisting}[language=Haskell]
+type Pass = Problem -> Either Infeasible Problem
+\end{lstlisting}
+
+The presolver defines several passes, some of which use a graph of the cluster ordering relationships to derive new information.
+By default, four of them are enabled:
+
+\begin{itemize}
+    \item \texttt{noInPlace} finds buffers marked by \texttt{NoInPlace} constraints and disables the corresponding reuse paths represented by \texttt{InPlaceCluster} constraints.
+    \item \texttt{piMaxOrder} derives ordering constraints from selected in-place reuse paths. If all candidate reuse paths associated with another read of the input buffer are disabled, that reader must precede the overwriting writer.
+    \item \texttt{orderComponents} identifies strongly connected components in the ordering graph. It either sets the variables within a component equal by adding alias assignments or detects a contradictory cycle and reports infeasibility.
+    \item \texttt{orderReachability} uses paths of strict ordering relationships to rule out fusion and in-place reuse choices that require equal cluster indices.
+\end{itemize}
+
+For example, \texttt{orderComponents} constructs a directed graph where the vertices are the cluster variables.
+A \texttt{ClusterBefore} constraint contributes a strict ($<$) ordering edge.
+In comparison, a \texttt{ClusterBeforeUnlessFused} constraint adds a non-strict ($\leq$) ordering edge.
+
+Consider a cycle consisting of three non-strict ordering relationships:
+\[
+    \pi_i \leq \pi_j, \qquad
+    \pi_j \leq \pi_k, \qquad
+    \pi_k \leq \pi_i.
+\]
+
+Figure~\ref{fig:ordering-cycle} shows the corresponding ordering graph.
+\begin{figure}[htbp]
+    \centering
+    \begin{tikzpicture}[>=stealth, every node/.style={font=\small}]
+        \node[draw, circle, minimum size=9mm] (i) at (0, 0) {$\pi_i$};
+        \node[draw, circle, minimum size=9mm] (j) at (4, 0) {$\pi_j$};
+        \node[draw, circle, minimum size=9mm] (k) at (2, -2) {$\pi_k$};
+        \draw[->] (i) -- node[above] {$\leq$} (j);
+        \draw[->] (j) -- node[below right] {$\leq$} (k);
+        \draw[->] (k) -- node[below left] {$\leq$} (i);
+    \end{tikzpicture}
+    \caption{A cycle of non-strict ordering relationships forces all three cluster indices to be equal.}
+    \label{fig:ordering-cycle}
+\end{figure}
+
+Together, these relationships imply that the cluster indices are equal: $\pi_i = \pi_j = \pi_k$.
+The pass records this by aliasing the variables in the substitution.
+More generally, all variables of a strongly connected component containing only non-strict edges must be equal.
+If such a component contains a strict edge, the ordering is contradictory.
+For example, if the first relationship were strict ($\pi_i < \pi_j$), the cycle would require $\pi_i < \pi_i$, which is impossible.
+
+The different passes are applied in sequence, followed by the local constraint simplifications.
+This will be repeated until a fixpoint is reached, where these simplifications no longer change the problem.
 
 \subsection{Custom Solver}
