@@ -58,4 +58,58 @@ The function \texttt{lowerAll} lowers all constraints using a shared supply of f
 
 \subsection{Presolver}
 
+The constraint language described above allows the problem to be simplified before it is lowered to an ILP.
+The presolver uses a substitution to record known variable values and relationships between variables.
+It uses this information to derive further assignments, drop already satisfied constraints, and detect contradictions.
+These optimizations work directly on the domain-specific constraints, where relationships such as fusion and cluster ordering are still explicit.
+
+\paragraph{Problem representation.}
+
+The presolver represents a problem as a set of unresolved constraints and a substitution.
+A substitution contains a mapping of variables to either a constant value or an alias to another variable.
+Here is an excerpt of the main types:
+
+\begin{lstlisting}[language=Haskell]
+data Value = Const Int | Alias Var
+
+newtype Substitution = Substitution (M.Map Var Value)
+
+data Problem = Problem
+  { constraints :: [Constraint]
+  , substitution :: Substitution
+  }
+\end{lstlisting}
+
+When a variable is looked up, the presolver follows the aliases until it resolves to a constant or a representative variable.
+The substitution map uses an ordering of the variables to record aliases, which avoids cycles during lookups.
+
+\paragraph{Constraint simplification.}
+
+The main simplification function is:
+\begin{lstlisting}[language=Haskell]
+instantiate
+    :: Substitution
+    -> Constraint
+    -> Either Infeasible (Maybe Constraint, [Assignment])
+\end{lstlisting}
+
+It simplifies a single constraint using the current substitution.
+The result either contains the (simplified) constraint --- if it still needs to be enforced --- or omits it if it is already satisfied or represented by new assignments.
+An assignment here is a pair of a variable and a value.
+If the constraint contradicts the known assignments, it returns \texttt{Infeasible}.
+
+For example, an \texttt{Unfused} constraint directly translates to an assignment of the fusion variable $x_{ij} = 1$.
+If $x_{ij} = 0$, the \texttt{ClusterBeforeUnlessFused} constraint establishes $\pi_i = \pi_j$, which is recorded by aliasing the two cluster variables and dropping the constraint.
+This also works the other way around: if the cluster variables are already equal, the fusion variable is fixed to $x_{ij} = 0$.
+Conversely, if $x_{ij} = 1$, the cluster indices need to be different, which is represented by the emitted \texttt{ClusterBefore} constraint.
+
+Similar rules are used in \texttt{instantiate} to simplify relationships like buffer materialisation, iteration directions, fold sizes, and in-place reuse.
+All these rules can trigger further simplifications in other constraints.
+This is handled by the \texttt{apply} function, which repeatedly simplifies the constraints until a fixpoint is reached.
+This continues until the substitution no longer changes and the assignments in the substitution preserve the information from the dropped constraints.
+
+\paragraph{Graph-based passes.}
+
+% TODO (not sure if here) explain assign vs replacement mode for substitution.
+
 \subsection{Custom Solver}
