@@ -23,7 +23,7 @@ suite =
   Suite
     { suiteName = "lowering",
       suiteDescription = "Assignment constraints vs. variable replacement",
-      suiteRuns = 3,
+      suiteRuns = 5,
       suitePrograms =
         [ TestProgram "simple" simple,
           TestProgram "chain" chain,

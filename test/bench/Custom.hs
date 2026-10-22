@@ -12,7 +12,7 @@ import Data.Array.Accelerate.Trafo.Partitioning.ILP.Presolve (Problem (..), empt
 import Data.Array.Accelerate.Trafo.Partitioning.ILP.Solver (ILP (ILP), allVars, solve)
 import qualified Data.Map as M
 import Framework (Suite (..), Variant (..), median, timePure)
-import ILP.Programs (TestProgram (..), bytes, radixsort)
+import ILP.Programs (TestProgram (..), bytes, chain, radixsort, simple, twoFolds, twoSorts)
 import ILP.Trafo (evalExpr, toFusionILP)
 import Text.Printf (printf)
 
@@ -21,9 +21,14 @@ suite =
   Suite
     { suiteName = "custom",
       suiteDescription = "Custom solver benchmark",
-      suiteRuns = 1,
+      suiteRuns = 5,
       suitePrograms =
-        [ TestProgram "sort-1" $ radixsort 1 bytes
+        [ TestProgram "simple" simple,
+          TestProgram "chain" chain,
+          TestProgram "two-folds" twoFolds,
+          TestProgram "sort-1" $ radixsort 1 bytes,
+          TestProgram "sort-2" $ radixsort 2 bytes,
+          TestProgram "two-sorts-1" $ twoSorts 1
         ],
       suiteVariants =
         [ Variant "custom" benchProgram

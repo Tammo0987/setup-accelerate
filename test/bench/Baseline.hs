@@ -10,7 +10,7 @@ import Data.Array.Accelerate.Trafo.Partitioning.ILP.MIP (MIP (MIP), cbc)
 import Data.Array.Accelerate.Trafo.Partitioning.ILP.Presolve (presolve)
 import Data.Array.Accelerate.Trafo.Partitioning.ILP.Solver (ILP (..), solve)
 import Framework
-import ILP.Programs (TestProgram (..), bytes, chain, radixsort, simple, twoFolds)
+import ILP.Programs (TestProgram (..), bytes, chain, radixsort, simple, twoFolds, twoSorts)
 import ILP.Trafo (evalExpr, toFusionILP)
 import Text.Printf (printf)
 
@@ -19,13 +19,14 @@ suite =
   Suite
     { suiteName = "baseline",
       suiteDescription = "Presolve followed by CBC solver",
-      suiteRuns = 3,
+      suiteRuns = 5,
       suitePrograms =
         [ TestProgram "simple" simple,
           TestProgram "chain" chain,
           TestProgram "twoFolds" twoFolds,
           TestProgram "sort-1" $ radixsort 1 bytes,
-          TestProgram "sort-2" $ radixsort 2 bytes
+          TestProgram "sort-2" $ radixsort 2 bytes,
+          TestProgram "two-sorts-1" $ twoSorts 1
         ],
       suiteVariants =
         [ Variant "cbc" benchProgram
