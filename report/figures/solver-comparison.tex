@@ -1,0 +1,64 @@
+\begin{figure}[htbp]
+    \centering
+    \definecolor{solverCustom}{HTML}{E69F00}
+    \begin{tikzpicture}
+        \begin{axis}[
+            width=\linewidth,
+            height=5.1cm,
+            font=\small,
+            ybar=2pt,
+            bar width=9pt,
+            ymode=log,
+            log origin=infty,
+            ymin=0.1,
+            ymax=100000,
+            ytick={0.1,1,10,100,1000,10000,100000},
+            yticklabels={0.1\,ms,1\,ms,10\,ms,100\,ms,1\,s,10\,s,100\,s},
+            minor ytick={},
+            minor tick length=0pt,
+            scaled y ticks=false,
+            symbolic x coords={simple,chain,twoFolds,sort-1,sort-2,two-sorts-1},
+            xtick=data,
+            xticklabel style={font=\scriptsize\ttfamily},
+            enlarge x limits=0.12,
+            axis x line*=bottom,
+            axis y line*=left,
+            axis line style={draw=codeInk},
+            tick align=outside,
+            ytick pos=left,
+            xtick pos=bottom,
+            major tick length=2pt,
+            xtick style={draw=none},
+            tick style={draw=codeInk},
+            ymajorgrids=true,
+            grid style={draw=codeRule},
+            legend image code/.code={
+                \path[#1] (0cm,-0.1cm) rectangle (0.2cm,0.1cm);
+            },
+            legend columns=2,
+            legend style={at={(0.5,1.06)}, anchor=south, draw=none, fill=none},
+        ]
+            \addplot[fill=codeKeyword, draw=none] coordinates {
+                (simple,7.044)
+                (chain,11.590)
+                (twoFolds,19.596)
+                (sort-1,479.944)
+                (sort-2,1749.283)
+                (two-sorts-1,1280.376)
+            };
+            \addlegendentry{CBC}
+
+            \addplot[fill=solverCustom, draw=none] coordinates {
+                (simple,0.682)
+                (chain,8.042)
+                (twoFolds,11.410)
+                (sort-1,249.334)
+                (sort-2,24951.345)
+                (two-sorts-1,61893.123)
+            };
+            \addlegendentry{Custom}
+        \end{axis}
+    \end{tikzpicture}
+    \caption{Median solver times after presolving (Tables~\ref{tab:baseline-results} and~\ref{tab:custom-results}). The logarithmic axis spans 0.1\,ms to 100\,s. Bars start at 0.1\,ms, not zero.}
+    \label{fig:solver-comparison}
+\end{figure}

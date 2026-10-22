@@ -6,7 +6,7 @@
 {
   packages = with pkgs; [
     (texlive.combine {
-      inherit (texlive) scheme-small latexmk;
+      inherit (texlive) scheme-small latexmk pgfplots;
     })
     gcc
     cbc
