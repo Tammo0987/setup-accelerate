@@ -166,3 +166,98 @@ The different passes are applied in sequence, followed by the local constraint s
 This will be repeated until a fixpoint is reached, where these simplifications no longer change the problem.
 
 \subsection{Custom Solver}
+The custom solver is designed to use the domain-specific constraint language and the presolver to find an optimal solution to the problem, trying to achieve better performance than the external ILP solver by exploiting the structure of the problem.
+
+\paragraph{Finding an initial solution.}
+
+The solver starts by finding an initial feasible solution to provide a starting point for the optimization process.
+Starting from the presolved problem, it uses a greedy algorithm to assign values to all the fusion choice variables.
+For each candidate fusion variable, it tests both assignments, $0$ (fused) and $1$ (not fused), and checks if the assignment is still feasible using the presolver.
+Every time a contradiction is found, the assignment is discarded.
+The next variable to branch on is selected by a heuristic, which prefers the following in this order:
+
+\begin{enumerate}
+    \item Fewest feasible children.
+    \item Fewest remaining fusion constraints, summed across all feasible children.
+    \item Fewest remaining constraints, summed across all feasible children.
+\end{enumerate}
+
+For the selected variable, the algorithm chooses the child with the fewest remaining fusion constraints.
+This continues until all fusion choices are made.
+The solver then disables any unresolved in-place choices and uses the partial assignment to complete the solution by deriving the values of all other variables in a second phase.
+
+\paragraph{Completing the solution.}
+
+Once fusion and in-place updates are decided, the solver completes the partial assignment by determining the cluster indices and assigning values to the remaining variables.
+
+Cluster-index variables that resolve through aliasing to the same representative variable will get the same value assigned.
+Based on the remaining \texttt{ClusterBefore} constraints, the solver constructs a directed graph of the cluster-index representatives.
+Using topological sorting, it assigns values starting from zero to the cluster indices in a way that respects the ordering constraints.
+If the graph contains a cycle, the solver cannot complete the current partial assignment and reports infeasibility for this branch.
+
+Once we know all of the cluster indices, the solver can determine the values for the $\pi_{\max}$ variables, which represent the buffer-lifetime boundaries for each buffer to avoid premature overwriting.
+The \texttt{ReadAliveThroughWriters} constraints set the lower bounds for these variables, because they require that the max buffer-lifetime index of a buffer must be at least as large as the indices of all clusters that read from it.
+For selected in-place reuse paths, the \texttt{InPlaceCluster} constraints set the upper bounds, as they require that the max buffer-lifetime index of a buffer must be less than or equal to the index of the cluster that overwrites it.
+For each buffer, the solver chooses the maximum of the lower bounds, as long as it does not exceed any upper bounds.
+If it does, the current partial assignment is infeasible.
+
+The iteration direction and fold size variables may have values assigned through constraint propagation.
+For any remaining unresolved direction or fold size variable, the solver assigns fallback values: $-1$ for iteration directions and $0$ for the fold sizes.
+These assignments are passed to the presolver, which will fail if they contradict any constraints.
+If completion of the solution succeeds, the resulting assignment can be evaluated to compute the objective value, which will be used for the optimal solution search.
+
+\paragraph{Searching for an optimal solution.}
+
+For the optimal solution search, the solver branches on the fusion and in-place reuse variables.
+The solver remembers the best solution found so far, called the incumbent.
+We take the initial solution found by the greedy algorithm as the incumbent, but reopen the choices for fusion and in-place reuse by using the presolved problem.
+The idea is that the greedy algorithm may contain suboptimal choices, but provides an upper bound early in the search for the optimal objective value.
+
+The search branches on unresolved in-place variables first, followed by fusion variables.
+Within both variable families, the solver starts with the most frequently occurring variable in the remaining constraints.
+For each selected variable, both assignments are explored in depth-first order.
+Each assignment is then propagated using the presolver, and branches that produce contradictions are discarded.
+
+To avoid exploring branches that cannot improve the incumbent, the solver tries to compute a lower bound on the objective value for the current partial assignment.
+Known variables contribute their actual costs, while unresolved binary variables contribute the lower of their possible objective contributions.
+The bound is improved using the \texttt{AtMostOneReader} and \texttt{AtMostOneWriter} constraints, which restrict which in-place reuse choices can be enabled together and thus provide a potentially tighter lower bound.
+If the lower bound is greater than or equal to the incumbent's cost, the branch is pruned because it cannot produce a better solution.
+If we cannot compute a lower bound yet, the search just continues.
+
+When all branching decisions have been made, the solver attempts to complete the assignment as described above.
+If it succeeds and the resulting objective value is lower than the incumbent's cost, the incumbent will be updated to the new solution.
+Once all branches are either explored or pruned, the solver returns the current incumbent as the best solution found.
+
+Algorithm~\ref{alg:custom-search} displays the simplified version of the search for the optimal solution.
+Note, that $\bot$ here denotes an unavailable lower bound, or an infeasible propagation or completion.
+
+\begin{algorithm}[htbp]
+    \caption{Custom solver search (simplified).}
+    \label{alg:custom-search}
+    \begin{algorithmic}[1]
+        \Require A partial problem and the best complete solution found so far (the incumbent).
+        \Ensure The lowest-cost solution among the incumbent and completions of the problem.
+        \Function{Search}{$\mathit{problem}, \mathit{incumbent}$}
+            \State $\mathit{bound} \gets \Call{LowerBound}{\mathit{problem}}$
+            \If{$\mathit{bound} \neq \bot$ \textbf{and} $\mathit{bound} \geq \Call{Cost}{\mathit{incumbent}}$}
+                \State \Return $\mathit{incumbent}$ \Comment{Prune this subtree.}
+            \EndIf
+            \If{no branching decisions remain in $\mathit{problem}$}
+                \State $\mathit{candidate} \gets \Call{CompleteAndEvaluate}{\mathit{problem}}$
+                \If{$\mathit{candidate} \neq \bot$ \textbf{and} $\Call{Cost}{\mathit{candidate}} < \Call{Cost}{\mathit{incumbent}}$}
+                    \State $\mathit{incumbent} \gets \mathit{candidate}$ \Comment{A better solution was found.}
+                \EndIf
+                \State \Return $\mathit{incumbent}$
+            \EndIf
+            \State $\mathit{variable} \gets \Call{ChooseVariable}{\mathit{problem}}$
+            \For{$\mathit{value} \in [0,1]$}
+                \State $\mathit{child} \gets \Call{AssumeAndPropagate}{\mathit{problem}, \mathit{variable}, \mathit{value}}$
+                \If{$\mathit{child} \neq \bot$}
+
+                    \State $\mathit{incumbent} \gets \Call{Search}{\mathit{child}, \mathit{incumbent}}$
+                \EndIf
+            \EndFor
+            \State \Return $\mathit{incumbent}$
+        \EndFunction
+    \end{algorithmic}
+\end{algorithm}
