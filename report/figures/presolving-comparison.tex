@@ -1,0 +1,72 @@
+\begin{figure}[htbp]
+    \centering
+    \definecolor{presolvingEnabled}{HTML}{E69F00}
+    \begin{tikzpicture}
+        \begin{axis}[
+            width=\linewidth,
+            height=6cm,
+            font=\small,
+            ybar=2pt,
+            bar width=6pt,
+            ymode=log,
+            log origin=infty,
+            ymin=0.001,
+            ymax=100,
+            ytick={0.001,0.01,0.1,1,10,100},
+            yticklabels={1\,ms,10\,ms,100\,ms,1\,s,10\,s,100\,s},
+            minor ytick={},
+            minor tick length=0pt,
+            scaled y ticks=false,
+            symbolic x coords={simple,chain,twoFolds,sort-1,sort-2,sort-3,sort-4,two-sorts-1,two-sorts-2,two-sorts-3},
+            xtick=data,
+            xticklabel style={font=\scriptsize\ttfamily, rotate=45, anchor=east},
+            enlarge x limits=0.07,
+            axis x line*=bottom,
+            axis y line*=left,
+            axis line style={draw=codeInk},
+            tick align=outside,
+            ytick pos=left,
+            xtick pos=bottom,
+            major tick length=2pt,
+            xtick style={draw=none},
+            tick style={draw=codeInk},
+            ymajorgrids=true,
+            grid style={draw=codeRule},
+            legend image code/.code={
+                \path[#1] (0cm,-0.1cm) rectangle (0.2cm,0.1cm);
+            },
+            legend columns=2,
+            legend style={at={(0.5,1.06)}, anchor=south, draw=none, fill=none},
+        ]
+            \addplot[fill=codeKeyword, draw=none] coordinates {
+                (simple,0.007730)
+                (chain,0.013248)
+                (twoFolds,0.025819)
+                (sort-1,0.510577)
+                (sort-2,1.455679)
+                (sort-3,1.824403)
+                (sort-4,5.794125)
+                (two-sorts-1,1.910294)
+                (two-sorts-2,14.135716)
+                (two-sorts-3,15.534035)
+            };
+            \addlegendentry{CBC}
+
+            \addplot[fill=presolvingEnabled, draw=none] coordinates {
+                (simple,0.007453)
+                (chain,0.013330)
+                (twoFolds,0.019622)
+                (sort-1,0.486437)
+                (sort-2,1.769963)
+                (sort-3,1.539886)
+                (sort-4,2.343020)
+                (two-sorts-1,1.293874)
+                (two-sorts-2,8.368888)
+                (two-sorts-3,11.286702)
+            };
+            \addlegendentry{Presolver + CBC}
+        \end{axis}
+    \end{tikzpicture}
+    \caption{Median times with and without presolving (Table~\ref{tab:presolving-results}). Logarithmic axis spans 1\,ms to 100\,s.}
+    \label{fig:presolving-comparison}
+\end{figure}

@@ -16,18 +16,18 @@ They cover simpler computations, but also the radix sort programs, which were kn
 \begin{table}[htbp]
     \centering
     \small
-    \begin{tabular}{@{}lp{0.71\linewidth}@{}}
+    \begin{tabular}{@{}lp{0.65\linewidth}@{}}
         \hline
         Workload & Structure and input \\
         \hline
         \texttt{simple} & One map over a ten-element integer vector. \\
         \texttt{chain} & Three consecutive maps over the same vector. \\
         \texttt{twoFolds} & Sum and product row reductions of a $5\times10$ integer matrix, combined by a zip. \\
-        \texttt{sort-1}, \texttt{sort-2} & One or two radix passes over ten \texttt{Word8} values. \\
-        \texttt{two-sorts-1} & Two one-pass radix computations. \\
+        \texttt{sort-1} to \texttt{sort-4} & One to four radix passes over ten \texttt{Word8} values. \\
+        \texttt{two-sorts-1} to \texttt{two-sorts-3} & Two radix computations with one to three passes each. \\
         \hline
     \end{tabular}
-    \caption{Fusion workloads. The lowering suite labels \texttt{twoFolds} as \texttt{two-folds}.}
+    \caption{Fusion workloads. The additional workloads \texttt{sort-3}, \texttt{sort-4}, \texttt{two-sorts-2}, and \texttt{two-sorts-3} are used only in the presolving comparison. The lowering suite labels \texttt{twoFolds} as \texttt{two-folds}.}
     \label{tab:evaluation-workloads}
 \end{table}
 
@@ -41,6 +41,12 @@ All of the benchmarks used the \texttt{MemoryUsage'} objective.
 The baseline configuration applies the presolver to the problem and then solves the simplified problem with CBC.
 Both steps are measured separately.
 The computed objective values serve as a reference for comparisons with the custom solver.
+The baseline uses variable-replacement lowering.
+
+To investigate the contribution of the presolver, a second benchmark measures the time for CBC with the presolver enabled and disabled.
+In both cases the variable-replacement lowering is used.
+Each path has one warm-up run which is not timed, followed by five measurements and an untimed additional run to compare the objective values.
+This benchmark also includes larger radix programs to observe how well the presolver scales with more complex fusion problems.
 
 The benchmark for lowering compares two different methods of translating a presolved problem into an ILP.
 One adds the variable assignments and aliases as explicit constraints to the problem, while the other replaces the variable occurrences in the existing constraints, objective function, and bounds.
@@ -52,21 +58,24 @@ The returned objective value is then compared with an oracle value obtained by u
 The different benchmarks can be executed by running this command: \texttt{cabal run ilp-bench -- <option>}.
 If no option is present, the baseline benchmark will be run.
 The available options are \texttt{-{}-baseline},
-\texttt{-{}-lower}, \texttt{-{}-custom},
-\texttt{-{}-defaults}, and \texttt{-{}-split};
+\texttt{-{}-presolve},
+\texttt{-{}-lower},
+\texttt{-{}-custom},
+\texttt{-{}-defaults},
+and \texttt{-{}-split};
 \texttt{-{}-all} runs all suites.
 
 % TODO not now splitting
 %
 % TODO not now defaults
 
-\subsection{Results}
+\subsection{Results and Discussion}
+
+\paragraph{Baseline.}
 
 Table~\ref{tab:baseline-results} reports the baseline timings and the objective values found by CBC.
 The presolve times are very small compared to the CBC calls for all of the benchmarked programs.
-The longest CBC time is observed for \texttt{sort-2} at around 1.75 seconds.
-
-% todo comparison with presolve disabled?
+The longest CBC time in this baseline suite is observed for \texttt{sort-2} at around 1.75 seconds.
 
 \begin{table}[htbp]
     \centering
@@ -85,6 +94,46 @@ The longest CBC time is observed for \texttt{sort-2} at around 1.75 seconds.
     \caption{Baseline results: presolving followed by CBC.}
     \label{tab:baseline-results}
 \end{table}
+
+\paragraph{Presolving.}
+
+Table~\ref{tab:presolving-results} compares CBC with and without the presolver enabled.
+
+\begin{table}[htbp]
+    \centering
+    \small
+    \begin{tabular}{lrrr}
+        \hline
+        Program & Median CBC (s) & Median presolve + CBC (s) & Cost \\
+        \hline
+        \texttt{simple}      & 0.007730  & 0.007453  & $-4$ \\
+        \texttt{chain}       & 0.013248  & 0.013330  & $-3$ \\
+        \texttt{twoFolds}    & 0.025819  & 0.019622  & $-1$ \\
+        \texttt{sort-1}      & 0.510577  & 0.486437  & 92 \\
+        \texttt{sort-2}      & 1.455679  & 1.769963  & 352 \\
+        \texttt{sort-3}      & 1.824403  & 1.539886  & 780 \\
+        \texttt{sort-4}      & 5.794125  & 2.343020  & 1376 \\
+        \texttt{two-sorts-1} & 1.910294  & 1.293874  & 548 \\
+        \texttt{two-sorts-2} & 14.135716 & 8.368888  & 1692 \\
+        \texttt{two-sorts-3} & 15.534035 & 11.286702 & 3536 \\
+        \hline
+    \end{tabular}
+    \caption{Comparison of CBC with the presolver enabled and disabled.}
+    \label{tab:presolving-results}
+\end{table}
+
+\input{figures/presolving-comparison}
+
+Figure~\ref{fig:presolving-comparison} visualizes the timing differences between CBC with and without the presolver enabled.
+All of the programs have matching objective values.
+
+For \texttt{simple} and \texttt{chain}, the differences are small and can't be interpreted confidently without measurement variability.
+For the larger sort programs, the presolver seems to have a benefit.
+For example, enabling the presolver reduces the measured time for \texttt{sort-4} by about 60\%.
+There is one exception, \texttt{sort-2}, where the presolver is about 22\% slower.
+
+One possible explanation is that the presolver removes constraints in a way that makes the problem harder for CBC to solve, even if the problem is smaller.
+We can see another example of this in the lowering comparison in the next part.
 
 \paragraph{Lowering.}
 
@@ -121,6 +170,9 @@ Both modes lead to the same objective value in the solutions.
     \label{tab:lowering-results}
 \end{table}
 
+The lowering comparison shows that reducing the number of variables and constraints does not necessarily reduce the solving time of CBC.
+Neither of the two modes is consistently faster for all the tested programs, so size alone is not a reliable indicator for solving time.
+
 \paragraph{Custom solver.}
 
 Table~\ref{tab:custom-results} reports the presolve times, custom solver times, and objective values.
@@ -149,8 +201,6 @@ All objective values found by the custom solver match the CBC reference values.
     \label{tab:custom-results}
 \end{table}
 
-\subsection{Discussion}
-
 Figure~\ref{fig:solver-comparison} compares the solver times of CBC and the custom solver, excluding presolving.
 It is clearly visible that for simple programs the custom solver is faster.
 However, when the fusion problem is bigger, as in \texttt{sort-2} or \texttt{two-sorts-1}, CBC is a lot faster.
@@ -158,6 +208,3 @@ One possible explanation for the custom solver's advantage on smaller programs i
 For the larger radix workloads, CBC's solving algorithms clearly outweigh this overhead.
 
 \input{figures/solver-comparison}
-
-The lowering comparison shows that reducing the number of variables and constraints does not necessarily reduce the solving time of CBC.
-Neither of the two modes is consistently faster for all the tested programs, so size alone is not a reliable indicator for solving time.
