@@ -261,3 +261,26 @@ Note, that $\bot$ here denotes an unavailable lower bound, or an infeasible prop
         \EndFunction
     \end{algorithmic}
 \end{algorithm}
+
+\subsection{Experimental optimizations.}
+
+After the initial implementation of the custom solver, several optimizations were tried to improve its performance.
+
+\paragraph{Default-value assignment.}
+
+The idea of default-value assignments is to detect unresolved binary variables that can be safely fixed to a value without losing an optimal solution.
+To implement this, we analyze the requirements from the objective function and the constraints in which a variable occurs.
+If these requirements have a common known value, we can safely assign that value to the variable and avoid branching on it.
+But if any requirement is unknown, the variable remains unresolved.
+This analysis is applied recursively before and during the search.
+
+The current limitation is that the analysis is very conservative.
+Tracing the benchmark runs showed that it produced no assignments for the tested instances, although it was invoked during the search.
+This is because the requirements are often unknown, and the analysis cannot establish a safe value assignment.
+For example, \texttt{ClusterBeforeUnlessFused} requires equal cluster indices when $x_{ij} = 0$ and strict ordering when $x_{ij} = 1$, which means we emit an unknown requirement.
+Choosing either value may violate ordering constraints for the current cluster indices, so neither value is safe to assign unconditionally.
+Therefore, the analysis cannot assign a default to its unresolved fusion variable.
+In the benchmark runs, the optimization worsened the performance of the solver, most likely because of the computational overhead of the analysis.
+A more precise analysis could detect more safe assignments in the future, provided that the overhead of the analysis does not outweigh the benefits of reducing the search space.
+
+\paragraph{Problem decomposition.}
