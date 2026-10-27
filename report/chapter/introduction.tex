@@ -9,9 +9,7 @@ Fusion combines multiple array operations into a combined operation, reducing th
 The compiler must decide which operations to fuse.
 In the current ILP-based approach, these decisions are expressed as an integer linear programming (ILP) problem, which is solved using an external ILP solver.
 The objective is to find the optimal fusion strategy that minimizes the cost, e.g. the number of memory allocations.
-Solving this problem is NP-hard.
 For some programs solving can take a long time and contributes significantly to the compilation time.
-% TODO: NP-hard, citation needed?
 
 This project investigates how properties of the fusion problem can be used to reduce solving time.
 The first step is to develop a domain-specific constraint language that makes these properties explicit.
@@ -23,14 +21,12 @@ Building on the same representation, a custom solver was implemented that exploi
 The project contributes a domain-specific constraint language for the fusion problem, together with a translation into an ILP representation for the external solver.
 Building on this language, it introduces a presolver for simplifying fusion problems and a custom solver that exploits their structure.
 The evaluation compares different presolving and solving configurations on a set of benchmarks.
-An oracle is used to verify the correctness of the solutions.
-The corresponding pull requests and the repository containing the evaluation code are listed in the appendix.
-% TODO link pull requests in appendix.
+CBC is used as an oracle to verify the correctness of the objective values returned by the custom solver.
+The repositories containing the implementation and evaluation code are listed in Appendix~\ref{app:source-code}.
 
 The report is structured as follows.
 \begin{itemize}
-    \item Section 2 describes the implementation of the domain-specific constraint language, the presolver, and the custom solver.
-    \item Section 3 describes the experimental evaluation with benchmarks and their results.
-    \item Section 4 discusses the results, their limitations and recommendations for future work.
-    \item Section 5 concludes the report.
+    \item Section~\ref{sec:implementation} describes the implementation of the domain-specific constraint language, the presolver, and the custom solver.
+    \item Section~\ref{sec:evaluation} describes the experimental evaluation with benchmarks, their results, and a discussion of them.
+    \item Section~\ref{sec:conclusion} concludes the report.
 \end{itemize}
