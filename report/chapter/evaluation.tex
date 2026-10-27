@@ -8,7 +8,7 @@ For configurations that produce solutions, their objective values are compared w
 
 The benchmarks were executed on an AMD Ryzen 7 3700X with 8 cores and 16 threads, running Linux 6.18.54 (x86\_64).
 The software environment consisted of GHC 9.12.3, cabal 3.16.1.0, and CBC 2.10.12.
-The benchmark implementation is available on GitHub, the repository details are listed in Appendix~\ref{app:source-code}.
+The benchmark implementation is available on GitHub; the repository details are listed in Appendix~\ref{app:source-code}.
 
 Table~\ref{tab:evaluation-workloads} lists the benchmark programs.
 They cover simpler computations, but also the radix sort programs, which were known to take a long time in fusion optimization.
@@ -27,7 +27,7 @@ They cover simpler computations, but also the radix sort programs, which were kn
         \texttt{two-sorts-1} to \texttt{two-sorts-3} & Two radix computations with one to three passes each. \\
         \hline
     \end{tabular}
-    \caption{Fusion workloads. The additional workloads \texttt{sort-3}, \texttt{sort-4}, \texttt{two-sorts-2}, and \texttt{two-sorts-3} are used only in the presolving comparison. The lowering suite labels \texttt{twoFolds} as \texttt{two-folds}.}
+    \caption{Fusion workloads. The additional workloads \texttt{sort-3}, \texttt{sort-4}, \texttt{two-sorts-2}, and \texttt{two-sorts-3} are used only in the presolving comparison.}
     \label{tab:evaluation-workloads}
 \end{table}
 
@@ -88,7 +88,7 @@ The longest CBC time in this baseline suite is observed for \texttt{sort-2} at a
         \texttt{two-sorts-1} & 0.001541 & 1.280376 & 548 \\
         \hline
     \end{tabular}
-    \caption{Baseline results: presolving followed by CBC.}
+    \caption{Baseline results: presolving and CBC times measured separately.}
     \label{tab:baseline-results}
 \end{table}
 
@@ -137,7 +137,7 @@ We can see another example of this in the lowering comparison in the next part.
 Table~\ref{tab:lowering-results} compares the additional assignment constraints with the variable replacement mode.
 Replacement reduces the number of constraints and variables for every program.
 However, this reduction does not mean that CBC times are shorter:
-For \texttt{chain}, \texttt{two-folds}, and \texttt{two-sorts-1}, replacement is faster, while the assignment-constraint mode is faster for the others.
+For \texttt{chain}, \texttt{twoFolds}, and \texttt{two-sorts-1}, replacement is faster, while the assignment-constraint mode is faster for the others.
 Both modes lead to the same objective value in the solutions.
 
 \begin{table}[htbp]
@@ -151,7 +151,7 @@ Both modes lead to the same objective value in the solutions.
                             & Replace & 66   & 44  & 0.010449 & $-4$ \\
         \texttt{chain}       & Assign  & 165  & 101 & 0.011385 & $-3$ \\
                             & Replace & 149  & 85  & 0.010796 & $-3$ \\
-        \texttt{two-folds}   & Assign  & 200  & 122 & 0.025263 & $-1$ \\
+        \texttt{twoFolds}    & Assign  & 200  & 122 & 0.025263 & $-1$ \\
                             & Replace & 180  & 102 & 0.016065 & $-1$ \\
         \texttt{sort-1}      & Assign  & 590  & 326 & 0.180462 & 92 \\
                             & Replace & 539  & 274 & 0.470131 & 92 \\
@@ -162,8 +162,7 @@ Both modes lead to the same objective value in the solutions.
         \hline
     \end{tabular}
     \caption{Lowering results: explicit assignments compared with
-        variable replacement. Row counts are measured before
-        solver finalization.}
+        variable replacement.}
     \label{tab:lowering-results}
 \end{table}
 
@@ -187,7 +186,7 @@ All objective values found by the custom solver match the CBC reference values.
         \hline
         \texttt{simple}      & 0.000035 & 0.000682  & $-4$ & $-4$ \\
         \texttt{chain}       & 0.000084 & 0.008042  & $-3$ & $-3$ \\
-        \texttt{two-folds}   & 0.000103 & 0.011410  & $-1$ & $-1$ \\
+        \texttt{twoFolds}    & 0.000103 & 0.011410  & $-1$ & $-1$ \\
         \texttt{sort-1}      & 0.000351 & 0.249334  & 92   & 92 \\
         \texttt{sort-2}      & 0.000712 & 24.951345 & 352  & 352 \\
         \texttt{two-sorts-1} & 0.000786 & 61.893123 & 548  & 548 \\
