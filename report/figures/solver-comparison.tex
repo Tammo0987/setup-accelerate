@@ -1,4 +1,4 @@
-\begin{figure}[htbp]
+\begin{figure}[!htbp]
     \centering
     \definecolor{solverCustom}{HTML}{E69F00}
     \begin{tikzpicture}
@@ -36,7 +36,10 @@
                 \path[#1] (0cm,-0.1cm) rectangle (0.2cm,0.1cm);
             },
             legend columns=2,
-            legend style={at={(0.5,1.06)}, anchor=south, draw=none, fill=none},
+            legend style={
+                            at={(0.5,1.06)}, anchor=south, draw=none, fill=none,
+                            /tikz/every even column/.append style={column sep=12pt},
+                        },
         ]
             \addplot[fill=codeKeyword, draw=none] coordinates {
                 (simple,7.044)

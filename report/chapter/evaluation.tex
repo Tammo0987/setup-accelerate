@@ -92,6 +92,7 @@ The longest CBC time in this baseline suite is observed for \texttt{sort-2} at a
     \label{tab:baseline-results}
 \end{table}
 
+\FloatBarrier
 \paragraph{Presolving.}
 
 Table~\ref{tab:presolving-results} compares CBC with and without the presolver enabled.
@@ -132,6 +133,7 @@ There is one exception, \texttt{sort-2}, where the presolver is about 22\% slowe
 One possible explanation is that the presolver removes constraints in a way that makes the problem harder for CBC to solve, even if the problem is smaller.
 We can see another example of this in the lowering comparison in the next part.
 
+\FloatBarrier
 \paragraph{Lowering.}
 
 Table~\ref{tab:lowering-results} compares the additional assignment constraints with the variable replacement mode.
@@ -169,6 +171,7 @@ Both modes lead to the same objective value in the solutions.
 The lowering comparison shows that reducing the number of variables and constraints does not necessarily reduce the solving time of CBC.
 Neither of the two modes is consistently faster for all the tested programs, so size alone is not a reliable indicator for solving time.
 
+\FloatBarrier
 \paragraph{Custom solver.}
 
 Table~\ref{tab:custom-results} reports the presolve times, custom solver times, and objective values.
@@ -197,10 +200,14 @@ All objective values found by the custom solver match the CBC reference values.
     \label{tab:custom-results}
 \end{table}
 
+\begin{samepage}
 Figure~\ref{fig:solver-comparison} compares the solver times of CBC and the custom solver, excluding presolving.
 It is clearly visible that for simple programs the custom solver is faster.
 However, when the fusion problem is bigger, as in \texttt{sort-2} or \texttt{two-sorts-1}, CBC is a lot faster.
 One possible explanation for the custom solver's advantage on smaller programs is that it avoids the overhead of invoking an external process.
 For the larger radix workloads, CBC's solving algorithms clearly outweigh this overhead.
+\par
+\end{samepage}
 
 \input{figures/solver-comparison}
+\FloatBarrier

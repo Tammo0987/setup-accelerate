@@ -12,6 +12,7 @@
         pgfplots
         algorithms
         algorithmicx
+        placeins
         ;
     })
     gcc
