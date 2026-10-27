@@ -283,4 +283,20 @@ Therefore, the analysis cannot assign a default to its unresolved fusion variabl
 In the benchmark runs, the optimization worsened the performance of the solver, most likely because of the computational overhead of the analysis.
 A more precise analysis could detect more safe assignments in the future, provided that the overhead of the analysis does not outweigh the benefits of reducing the search space.
 
+\paragraph{Direction defaults.}
+
+A similar approach is used for default values of unresolved read and write direction variables.
+The implementation groups them by direction-equality relationships and checks if a common value can be assigned safely.
+This value must respect already known directions, negativity requirements, and variable bounds.
+After assignments, the presolver is used to simplify constraints and the analysis is repeated, as with binary defaults.
+
+Tracing the \texttt{simple} and \texttt{chain} benchmark runs showed that this approach produced assignments, unlike binary defaulting in these runs.
+However, the analysis is still conservative and excludes some groups of variables from the assignment, e.g. if they occur in the objective function or in a lowered constraint not covered by the analysis.
+Therefore, a more precise analysis could recognize additional safe assignments.
+
+The benchmark also revealed that enabling this optimization makes the performance worse.
+A possible explanation would be the analysis overhead, which may outweigh the benefits for the tested instances.
+Further profiling is needed to confirm this hypothesis.
+A more precise analysis could also increase the computational overhead, so it is not clear if the benefits would outweigh the costs.
+
 \paragraph{Problem decomposition.}
