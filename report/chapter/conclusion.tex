@@ -1,7 +1,29 @@
 \section{Conclusion}
 
-% short interpretation of the results.
+This experimentation project introduced a new representation for Accelerate's fusion optimization problem, a presolver that simplifies the problem, and a custom solver to potentially replace the external CBC solver.
+The evaluation showed that the presolver reduced the solving time for most tested programs.
+The custom solver, on the other hand, was only faster than CBC on the smaller programs, while being significantly slower on the larger ones.
+But all objective values from the custom solver matched the CBC reference values.
 
 \subsection{Limitations}
 
+The evaluation checks whether the objective values match, but does not provide a complete correctness validation of the presolver and the custom solver.
+Only one objective (\texttt{MemoryUsage'}) was tested, and the evaluation used a small set of programs.
+Also, matching objective values does not guarantee that all constraints are satisfied.
+
 \subsection{Future Work}
+
+Based on these limitations, a broader evaluation including more programs and different objectives would be useful.
+
+The custom solver has a lot of potential for improvement.
+Existing disabled optimizations like defaulting and splitting problems into independent subproblems can be revisited and improved by implementing more precise detection of safe assignments and different branching strategies for better decompositions.
+One could also come up with completely new optimizations or improved branching.
+
+One unclear aspect of the custom solver is why first branching on the in-place variables was faster in development tests than first branching on the fusion variables.
+This could be investigated further, as it was only tested during implementation and not during the evaluation and there seems to be no obvious reason for this behavior.
+
+Another direction to explore could be adding heuristics to the custom solver.
+The custom solver was faster for the smaller programs, possibly due to the overhead of creating a new process for CBC.
+A heuristic to choose between the custom solver and CBC based on the problem size could be investigated.
+
+At the moment, the custom solver is a solid baseline for further experiments, but it is not yet a replacement for CBC.
