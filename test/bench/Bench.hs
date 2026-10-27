@@ -6,6 +6,7 @@ import Criterion.Measurement (initializeTime)
 import qualified Custom
 import Framework (runSuite)
 import qualified Lowering
+import qualified Presolving
 import qualified Splitting
 import System.Environment (getArgs)
 import System.Exit (exitFailure)
@@ -18,13 +19,14 @@ main = do
   suites <- case arguments of
     [] -> pure [Baseline.suite]
     ["--baseline"] -> pure [Baseline.suite]
+    ["--presolve"] -> pure [Presolving.suite]
     ["--custom"] -> pure [Custom.suite]
     ["--lower"] -> pure [Lowering.suite]
     ["--defaults"] -> pure [Defaults.suite]
     ["--split"] -> pure [Splitting.suite]
-    ["--all"] -> pure [Baseline.suite, Custom.suite, Lowering.suite, Defaults.suite, Splitting.suite]
+    ["--all"] -> pure [Baseline.suite, Presolving.suite, Custom.suite, Lowering.suite, Defaults.suite, Splitting.suite]
     _ -> do
-      hPutStrLn stderr "Usage: ilp-bench [--baseline | --custom | --lower | --defaults | --split | --all]"
+      hPutStrLn stderr "Usage: ilp-bench [--baseline | --presolve | --custom | --lower | --defaults | --split | --all]"
       exitFailure
 
   initializeTime

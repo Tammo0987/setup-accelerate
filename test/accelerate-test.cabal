@@ -50,6 +50,7 @@ executable ilp-bench
     ILP.Trafo
     ILP.Validate
     Lowering
+    Presolving
     Splitting
 
   build-depends:
