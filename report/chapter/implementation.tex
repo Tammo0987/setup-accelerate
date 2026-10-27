@@ -300,3 +300,19 @@ Further profiling is needed to confirm this hypothesis.
 A more precise analysis could also increase the computational overhead, so it is not clear if the benefits would outweigh the costs.
 
 \paragraph{Problem decomposition.}
+
+Another optimization is to decompose the problem into multiple independent ones and solve them separately.
+The decomposition requires that no constraint couples unresolved variables from different subproblems and that the objective can be split into contributions of the individual subproblems.
+If these conditions are met, we can solve them independently and combine their solutions into one for the original problem.
+The intended benefit is to reduce the search space by replacing one large search with multiple smaller searches.
+
+However, the current implementation has a few limitations.
+It only attempts splitting before the search and does not reapply it during the recursive search.
+This could lead to missed opportunities, because the more assignments are known, the easier it could be to recognize independent problems.
+The current benchmark also shows that the initial decomposition usually has one dominant problem and a few very small ones, which does not improve the search performance.
+
+The current hypothesis is that just applying it recursively will not provide much benefit unless the branching strategy is adapted to favor choices that find independent problems.
+Tracing the benchmark showed that the dominant subproblem contained all remaining fusion and in-place reuse variables that the solver branches on.
+One possible idea is to build a dependency graph and find so-called articulation points to guide the branching strategy towards independent subproblems.
+Trying to find similarly sized problems could also be beneficial.
+All of these ideas need further investigation, but the current implementation can serve as a starting point for future work.
